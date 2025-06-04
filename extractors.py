@@ -220,27 +220,91 @@ def extract_notifikasi(text):
 # ========================= Ekstraksi DKPTKA =========================
 def extract_dkptka_info(full_text):
     def safe_search(pattern, text, group=1):
-        match = re.search(pattern, text, re.DOTALL)
+        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
         return match.group(group).strip() if match else None
 
+    def clean_multiline_text(text):
+        """Clean and format multi-line text"""
+        if not text:
+            return None
+        # Remove extra whitespace and normalize line breaks
+        cleaned = re.sub(r'\s+', ' ', text.strip())
+        return cleaned
+
     try:
+        # Extract company name - look for PT. pattern
+        company_match = re.search(r'"([^"]*PT[^"]*)"', full_text, re.IGNORECASE)
+        company_name = company_match.group(1).strip() if company_match else None
+        
+        # If no quotes, try alternative pattern
+        if not company_name:
+            company_name = safe_search(r"(?:Nama\s+)?Pemberi\s+Kerja[:\s]*([^\n]+)", full_text)
+
+        # Extract address - handle multi-line format
+        address_match = re.search(r'Alamat\s*:\s*(.*?)(?=\d+\.\s*Nomor\s+Telepon|III\.)', full_text, re.DOTALL | re.IGNORECASE)
+        address = clean_multiline_text(address_match.group(1)) if address_match else None
+
+        # Extract phone number
+        phone = safe_search(r"Nomor\s+Telepon\s*:\s*([^\n]+)", full_text)
+
+        # Extract email
+        email = safe_search(r"Email\s*:\s*([^\n]+)", full_text)
+
+        # Extract TKA name
+        tka_name = safe_search(r"Nama\s+TKA\s*:\s*([^\n]+)", full_text)
+
+        # Extract birth place and date
+        birth_info = safe_search(r"Tempat\s*/?\s*Tgl?\s*Lahir\s*:\s*([^\n]+)", full_text)
+
+        # Extract passport number
+        passport = safe_search(r"Nomor\s+Paspor\s*:\s*([^\n]+)", full_text)
+
+        # Extract position/job title
+        position = safe_search(r"Jabatan\s*:\s*([^\n]+)", full_text)
+
+        # Extract Kanim
+        kanim = safe_search(r"Kanim\s+Perpanjangan\s+ITAS/ITAP\s*:\s*([^\n]+)", full_text)
+
+        # Extract work location
+        work_location = safe_search(r"Lokasi\s+Kerja\s*:\s*([^\n]+)", full_text)
+
+        # Extract duration
+        duration = safe_search(r"Jangka\s+Waktu\s*:\s*([^\n]+)", full_text)
+
+        # Extract account number
+        account_no = safe_search(r"No\s+Rekening\s*:\s*([^\n]+)", full_text)
+
+        # Extract DKPTKA amount
+        dkptka_amount = safe_search(r"DKPTKA\s+yang\s+dibayarkan\s*:\s*([^\n]+)", full_text)
+
+        # Extract nationality (if available)
+        nationality = safe_search(r"Kewarganegaraan\s*:\s*([^\n]+)", full_text)
+
         result = {
-            "Nama Pemberi Kerja": safe_search(r"Nama Pemberi Kerja\s*:\s*(.*)", full_text),
-            "Alamat": safe_search(r"Alamat\s*:\s*(.*?)\n\n", full_text),
-            "No Telepon": safe_search(r"Nomor Telepon\s*:\s*(.*)", full_text),
-            "Email": safe_search(r"Email\s*:\s*(.*)", full_text),
-            "Nama TKA": safe_search(r"Nama TKA\s*:\s*(.*)", full_text),
-            "Tempat/Tanggal Lahir": safe_search(r"Tempat\s*/\s*Tgl Lahir\s*:\s*(.*)", full_text),
-            "Nomor Paspor": safe_search(r"Nomor Paspor\s*:\s*(.*)", full_text),
-            "Jabatan": safe_search(r"Jabatan\s*:\s*(.*)", full_text),
-            "Kanim": safe_search(r"Kanim Perpanjangan ITAS/ITAP\s*:\s*(.*)", full_text),
-            "Lokasi Kerja": safe_search(r"Lokasi Kerja\s*:\s*(.*)", full_text),
-            "Jangka Waktu": safe_search(r"Jangka Waktu\s*:\s*(.*)", full_text),
-            "No Rekening": safe_search(r"No Rekening\s*:\s*(.*)", full_text),
-            "DKPTKA": safe_search(r"DKPTKA yang dibayarkan\s*:\s*(.*)", full_text),
+            "Nama Pemberi Kerja": company_name,
+            "Alamat": address,
+            "No Telepon": phone,
+            "Email": email,
+            "Nama TKA": tka_name,
+            "Tempat/Tanggal Lahir": birth_info,
+            "Nomor Paspor": passport,
+            "Jabatan": position,
+            "Kanim": kanim,
+            "Lokasi Kerja": work_location,
+            "Jangka Waktu": duration,
+            "No Rekening": account_no,
+            "DKPTKA": dkptka_amount,
+            "Kewarganegaraan": nationality,
             "Jenis Dokumen": "DKPTKA"
         }
-    except AttributeError as e:
+
+        # Clean up any remaining formatting issues
+        for key, value in result.items():
+            if isinstance(value, str):
+                # Remove multiple spaces and clean up formatting
+                result[key] = re.sub(r'\s+', ' ', value.strip()) if value else None
+
+    except Exception as e:
         result = {"Error": f"Data tidak lengkap atau format tidak sesuai: {str(e)}"}
 
     return result

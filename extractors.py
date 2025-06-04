@@ -2,7 +2,7 @@ import re
 import pdfplumber
 from helpers import clean_text, format_date, split_birth_place_date
 
-# Ekstraksi SKTT
+# ========================= Ekstraksi SKTT =========================
 def extract_sktt(text):
     nik = re.search(r'NIK/Number of Population Identity\s*:\s*(\d+)', text)
     name = re.search(r'Nama/Name\s*:\s*([\w\s]+)', text)
@@ -30,7 +30,7 @@ def extract_sktt(text):
         "Jenis Dokumen": "SKTT"
     }
 
-# Ekstraksi EVLN
+# ========================= Ekstraksi EVLN =========================
 def extract_evln(text):
     data = {
         "Name": "",
@@ -43,20 +43,19 @@ def extract_evln(text):
 
     lines = text.split("\n")
 
-    # [Tambahan] Cari nama berdasarkan sapaan seperti Dear Mr./Ms.
+    # Cari nama berdasarkan sapaan seperti Dear Mr./Ms.
     for i, line in enumerate(lines):
         if re.search(r"Dear\s+(Mr\.|Ms\.|Sir|Madam)?", line, re.IGNORECASE):
             if i + 1 < len(lines):
                 name_candidate = lines[i + 1].strip()
                 if 3 < len(name_candidate) < 50:
-                    # Gunakan clean_text jika tersedia
                     if 'clean_text' in globals():
                         data["Name"] = clean_text(name_candidate, is_name_or_pob=True)
                     else:
                         data["Name"] = re.sub(r'[^A-Z ]', '', name_candidate.upper())
-            break  # hentikan loop setelah dapat nama
+            break
 
-    # Lanjutkan parsing baris seperti biasa
+    # Parsing baris lain
     for line in lines:
         if not data["Name"] and re.search(r"(?i)\bName\b|\bNama\b", line):
             parts = line.split(":")
@@ -81,7 +80,7 @@ def extract_evln(text):
 
     return data
 
-# Ekstraksi ITAS
+# ========================= Ekstraksi ITAS =========================
 def extract_itas(text):
     data = {}
 
@@ -92,7 +91,7 @@ def extract_itas(text):
     data["Permit Number"] = permit_match.group(1) if permit_match else None
 
     expiry_match = re.search(r"STAY PERMIT EXPIRY\s*:\s*([\d/]+)", text)
-    data["Stay Permit Expiry"] = expiry_match.group(1) if expiry_match else None
+    data["Stay Permit Expiry"] = format_date(expiry_match.group(1)) if expiry_match else None
 
     place_date_birth_match = re.search(r"Place / Date of Birth\s*.*:\s*([A-Za-z\s]+)\s*/\s*([\d-]+)", text)
     if place_date_birth_match:
@@ -106,7 +105,7 @@ def extract_itas(text):
     data["Passport Number"] = passport_match.group(1) if passport_match else None
 
     passport_expiry_match = re.search(r"Passport Expiry\s*: ([\d-]+)", text)
-    data["Passport Expiry"] = passport_expiry_match.group(1) if passport_expiry_match else None
+    data["Passport Expiry"] = format_date(passport_expiry_match.group(1)) if passport_expiry_match else None
 
     nationality_match = re.search(r"Nationality\s*: ([A-Z]+)", text)
     data["Nationality"] = nationality_match.group(1) if nationality_match else None
@@ -127,8 +126,9 @@ def extract_itas(text):
 
     return data
 
-# Ekstraksi ITK
+# ========================= Ekstraksi ITK =========================
 def extract_itk(text):
+    # Struktur sama dengan ITAS, bisa direuse tapi saya buatkan terpisah untuk fleksibilitas
     data = {}
 
     name_match = re.search(r"([A-Z\s]+)\nPERMIT NUMBER", text)
@@ -138,7 +138,7 @@ def extract_itk(text):
     data["Permit Number"] = permit_match.group(1) if permit_match else None
 
     expiry_match = re.search(r"STAY PERMIT EXPIRY\s*:\s*([\d/]+)", text)
-    data["Stay Permit Expiry"] = expiry_match.group(1) if expiry_match else None
+    data["Stay Permit Expiry"] = format_date(expiry_match.group(1)) if expiry_match else None
 
     place_date_birth_match = re.search(r"Place / Date of Birth\s*.*:\s*([A-Za-z\s]+)\s*/\s*([\d-]+)", text)
     if place_date_birth_match:
@@ -152,7 +152,7 @@ def extract_itk(text):
     data["Passport Number"] = passport_match.group(1) if passport_match else None
 
     passport_expiry_match = re.search(r"Passport Expiry\s*: ([\d-]+)", text)
-    data["Passport Expiry"] = passport_expiry_match.group(1) if passport_expiry_match else None
+    data["Passport Expiry"] = format_date(passport_expiry_match.group(1)) if passport_expiry_match else None
 
     nationality_match = re.search(r"Nationality\s*: ([A-Z]+)", text)
     data["Nationality"] = nationality_match.group(1) if nationality_match else None
@@ -173,7 +173,7 @@ def extract_itk(text):
 
     return data
 
-# File Notifikasi
+# ========================= Ekstraksi Notifikasi =========================
 def extract_notifikasi(text):
     data = {
         "Nomor Keputusan": "",
@@ -190,8 +190,7 @@ def extract_notifikasi(text):
     def find(pattern):
         match = re.search(pattern, text, re.IGNORECASE)
         return match.group(1).strip() if match else ""
-    
-    # Ekstraksi nomor keputusan, contoh: B.3/121986/PK.04.01/IX/2024
+
     nomor_keputusan_match = re.search(r"NOMOR\s+([A-Z0-9./-]+)", text, re.IGNORECASE)
     data["Nomor Keputusan"] = nomor_keputusan_match.group(1).strip() if nomor_keputusan_match else ""
 
@@ -203,9 +202,13 @@ def extract_notifikasi(text):
     data["Jabatan"] = find(r"Jabatan\s*:\s*(.*)")
     data["Lokasi Kerja"] = find(r"Lokasi Kerja\s*:\s*(.*)")
 
-    valid_match = re.search(r"Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*(?:s\.?d\.?|sampai dengan)?\s*(\d{2}[-/]\d{2}[-/]\d{4})", text, re.IGNORECASE)
+    valid_match = re.search(
+        r"Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*(?:s\.?d\.?|sampai dengan)?\s*(\d{2}[-/]\d{2}[-/]\d{4})",
+        text, re.IGNORECASE)
     if not valid_match:
-        valid_match = re.search(r"Tanggal Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*s\.?d\.?\s*(\d{2}[-/]\d{2}[-/]\d{4})", text, re.IGNORECASE)
+        valid_match = re.search(
+            r"Tanggal Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*s\.?d\.?\s*(\d{2}[-/]\d{2}[-/]\d{4})",
+            text, re.IGNORECASE)
 
     if valid_match:
         start_date = format_date(valid_match.group(1))
@@ -214,26 +217,30 @@ def extract_notifikasi(text):
 
     return data
 
-# ========================= DKPTKA =========================
+# ========================= Ekstraksi DKPTKA =========================
 def extract_dkptka_info(full_text):
+    def safe_search(pattern, text, group=1):
+        match = re.search(pattern, text, re.DOTALL)
+        return match.group(group).strip() if match else None
+
     try:
         result = {
-            "Nama Pemberi Kerja": re.search(r"Nama Pemberi Kerja\s*:\s*(.*)", full_text).group(1).strip(),
-            "Alamat": re.search(r"Alamat\s*:\s*(.*?)\n\n", full_text, re.DOTALL).group(1).replace("\n", " ").strip(),
-            "No Telepon": re.search(r"Nomor Telepon\s*:\s*(.*)", full_text).group(1).strip(),
-            "Email": re.search(r"Email\s*:\s*(.*)", full_text).group(1).strip(),
-            "Nama TKA": re.search(r"Nama TKA\s*:\s*(.*)", full_text).group(1).strip(),
-            "Tempat/Tanggal Lahir": re.search(r"Tempat\s*/\s*Tgl Lahir\s*:\s*(.*)", full_text).group(1).strip(),
-            "Nomor Paspor": re.search(r"Nomor Paspor\s*:\s*(.*)", full_text).group(1).strip(),
-            "Jabatan": re.search(r"Jabatan\s*:\s*(.*)", full_text).group(1).strip(),
-            "Kanim": re.search(r"Kanim Perpanjangan ITAS/ITAP\s*:\s*(.*)", full_text).group(1).strip(),
-            "Lokasi Kerja": re.search(r"Lokasi Kerja\s*:\s*(.*)", full_text).group(1).strip(),
-            "Jangka Waktu": re.search(r"Jangka Waktu\s*:\s*(.*)", full_text).group(1).strip(),
-            "No Rekening": re.search(r"No Rekening\s*:\s*(.*)", full_text).group(1).strip(),
-            "DKPTKA": re.search(r"DKPTKA yang dibayarkan\s*:\s*(.*)", full_text).group(1).strip()
+            "Nama Pemberi Kerja": safe_search(r"Nama Pemberi Kerja\s*:\s*(.*)", full_text),
+            "Alamat": safe_search(r"Alamat\s*:\s*(.*?)\n\n", full_text),
+            "No Telepon": safe_search(r"Nomor Telepon\s*:\s*(.*)", full_text),
+            "Email": safe_search(r"Email\s*:\s*(.*)", full_text),
+            "Nama TKA": safe_search(r"Nama TKA\s*:\s*(.*)", full_text),
+            "Tempat/Tanggal Lahir": safe_search(r"Tempat\s*/\s*Tgl Lahir\s*:\s*(.*)", full_text),
+            "Nomor Paspor": safe_search(r"Nomor Paspor\s*:\s*(.*)", full_text),
+            "Jabatan": safe_search(r"Jabatan\s*:\s*(.*)", full_text),
+            "Kanim": safe_search(r"Kanim Perpanjangan ITAS/ITAP\s*:\s*(.*)", full_text),
+            "Lokasi Kerja": safe_search(r"Lokasi Kerja\s*:\s*(.*)", full_text),
+            "Jangka Waktu": safe_search(r"Jangka Waktu\s*:\s*(.*)", full_text),
+            "No Rekening": safe_search(r"No Rekening\s*:\s*(.*)", full_text),
+            "DKPTKA": safe_search(r"DKPTKA yang dibayarkan\s*:\s*(.*)", full_text),
+            "Jenis Dokumen": "DKPTKA"
         }
     except AttributeError as e:
-        # Jika ada pattern yang tidak ditemukan, hindari crash
         result = {"Error": f"Data tidak lengkap atau format tidak sesuai: {str(e)}"}
 
     return result

@@ -18,7 +18,6 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
             texts = [page.extract_text() for page in pdf.pages if page.extract_text()]
             full_text = "\n".join(texts)
 
-        # Ekstraksi berdasarkan jenis dokumen
         if doc_type == "SKTT":
             extracted_data = extract_sktt(full_text)
         elif doc_type == "EVLN":
@@ -30,7 +29,7 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
         elif doc_type == "Notifikasi":
             extracted_data = extract_notifikasi(full_text)
         elif doc_type == "DKPTKA":
-            extracted_data = extract_dkptka_info(full_text)
+            extracted_data = extract_dkptka_info(full_text)   
         else:
             extracted_data = {}
 
@@ -39,16 +38,15 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
 
         temp_file_path = os.path.join(temp_dir, new_filename)
         with open(temp_file_path, 'wb') as f:
-            f.write(file_bytes)
+            uploaded_file.seek(0)
+            f.write(uploaded_file.read())
 
         renamed_files[uploaded_file.name] = {'new_name': new_filename, 'path': temp_file_path}
 
-    # Simpan hasil ekstraksi ke Excel
     df = pd.DataFrame(all_data)
     excel_path = os.path.join(temp_dir, "Hasil_Ekstraksi.xlsx")
     df.to_excel(excel_path, index=False)
 
-    # Buat ZIP dari file yang di-rename
     zip_path = os.path.join(temp_dir, "Renamed_Files.zip")
     with zipfile.ZipFile(zip_path, 'w') as zipf:
         for file_info in renamed_files.values():

@@ -218,99 +218,380 @@ def extract_notifikasi(text):
 
     return data
 
-# ========================= Ekstraksi DKPTKA =========================
-def extract_dkptka_info(full_text):
-    def safe_search(pattern, text, group=1):
-        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-        return match.group(group).strip() if match else None
+# ========================= Ekstraksi DKPTKA (IMPROVED) =========================
+def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
+    """
+    Ekstraksi informasi DKPTKA yang diperbaiki dengan akurasi tinggi
+    """
+    
+    def safe_extract(pattern: str, text: str, group: int = 1, flags: int = re.IGNORECASE) -> Optional[str]:
+        """Ekstraksi aman dengan error handling"""
+        try:
+            match = re.search(pattern, text, flags)
+            if match:
+                result = match.group(group).strip()
+                # Clean up extra whitespace
+                result = re.sub(r'\s+', ' ', result)
+                return result if result else None
+            return None
+        except Exception:
+            return None
 
-    def clean_multiline_text(text):
-        """Clean and format multi-line text"""
+    def clean_extracted_text(text: str) -> Optional[str]:
+        """Membersihkan teks dari karakter tidak perlu"""
         if not text:
             return None
-        # Remove extra whitespace and normalize line breaks
+        # Remove extra whitespace, newlines, and special characters
         cleaned = re.sub(r'\s+', ' ', text.strip())
-        return cleaned
+        cleaned = re.sub(r'["\'\n\r\t]+', ' ', cleaned).strip()
+        return cleaned if cleaned else None
 
-    try:   
+    try:
+        result = {}
+
         # 1. Extract Nama Pemberi Kerja
-        # Pattern yang lebih spesifik untuk menangkap nama perusahaan
         company_patterns = [
             r'Nama\s+Pemberi\s+Kerja\s*:\s*([^\n]+)',  # Format standar
-            r'"([^"]*PT[^"]*)"',  # Nama dalam tanda petik dengan PT
-            r'(?:^|\n)\s*([A-Z][A-Z\s]*PT\.?[A-Z\s]*)\s*(?=\n.*Alamat)',  # Nama sebelum alamat
+            r'([A-Z][A-Z\s]*PT\.?[A-Z\s]*)\s*(?=\n.*Alamat)',  # Nama sebelum alamat
+            r'I\.\s*Pemberi\s+Kerja\s+TKA.*?:\s*\n\s*\d+\.\s*Nama\s+Pemberi\s+Kerja\s*:\s*([^\n]+)',  # Format dengan section
         ]
         
         company_name = None
         for pattern in company_patterns:
             company_name = safe_extract(pattern, full_text)
             if company_name:
-                company_name = clean_text(company_name)
+                company_name = clean_extracted_text(company_name)
                 break
         
         result["Nama Pemberi Kerja"] = company_name
 
-        # Extract address - handle multi-line format
-        address_match = re.search(r'Alamat\s*:\s*(.*?)(?=\d+\.\s*Nomor\s+Telepon|III\.)', full_text, re.DOTALL | re.IGNORECASE)
-        address = clean_multiline_text(address_match.group(1)) if address_match else None
+        # 2. Extract Alamat - menangani format multi-line
+        address_patterns = [
+            r'Alamat\s*:\s*(.*?)(?=\n\s*\d+\.\s*Nomor\s+Telepon|\n\s*3\.|$)',
+            r'Alamat\s*:\s*(.*?)(?=Nomor\s+Telepon|Email|$)',
+        ]
+        
+        address = None
+        for pattern in address_patterns:
+            address_match = re.search(pattern, full_text, re.DOTALL | re.IGNORECASE)
+            if address_match:
+                address_text = address_match.group(1)
+                # Clean multi-line address
+                address = re.sub(r'\n\s*', ' ', address_text.strip())
+                address = re.sub(r'\s+', ' ', address)
+                break
+        
+        result["Alamat"] = clean_extracted_text(address)
 
-        # Extract phone number
-        phone = safe_search(r"Nomor\s+Telepon\s*:\s*([^\n]+)", full_text)
+        # 3. Extract Nomor Telepon
+        phone_patterns = [
+            r'Nomor\s+Telepon\s*:\s*([0-9\-\+\(\)\s]+)',
+            r'Telepon\s*:\s*([0-9\-\+\(\)\s]+)',
+        ]
+        
+        phone = None
+        for pattern in phone_patterns:
+            phone = safe_extract(pattern, full_text)
+            if phone:
+                # Clean phone number format
+                phone = re.sub(r'[^\d\-\+\(\)]', '', phone)
+                break
+        
+        result["No Telepon"] = phone
 
-        # Extract email
-        email = safe_search(r"Email\s*:\s*([^\n]+)", full_text)
+        # 4. Extract Email
+        email_patterns = [
+            r'Email\s*:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+            r'E-mail\s*:\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+        ]
+        
+        email = None
+        for pattern in email_patterns:
+            email = safe_extract(pattern, full_text)
+            if email:
+                break
+        
+        result["Email"] = email
 
-        # Extract TKA name
-        tka_name = safe_search(r"Nama\s+TKA\s*:\s*([^\n]+)", full_text)
+        # 5. Extract Nama TKA
+        tka_patterns = [
+            r'Nama\s+TKA\s*:\s*([A-Z\s]+?)(?=\n\s*\d+\.|\n\s*Tempat)',
+            r'Nama\s+TKA\s*:\s*([^\n]+)',
+        ]
+        
+        tka_name = None
+        for pattern in tka_patterns:
+            tka_name = safe_extract(pattern, full_text)
+            if tka_name:
+                break
+        
+        result["Nama TKA"] = clean_extracted_text(tka_name)
 
-        # Extract birth place and date
-        birth_info = safe_search(r"Tempat\s*/?\s*Tgl?\s*Lahir\s*:\s*([^\n]+)", full_text)
+        # 6. Extract Tempat/Tanggal Lahir
+        birth_patterns = [
+            r'Tempat\s*/\s*Tgl\s+Lahir\s*:\s*([^,\n]+,\s*\d{1,2}\s+\w+\s+\d{4})',
+            r'Tempat.*?Lahir\s*:\s*([^\n]+)',
+        ]
+        
+        birth_info = None
+        for pattern in birth_patterns:
+            birth_info = safe_extract(pattern, full_text)
+            if birth_info:
+                break
+        
+        result["Tempat/Tanggal Lahir"] = clean_extracted_text(birth_info)
 
-        # Extract passport number
-        passport = safe_search(r"Nomor\s+Paspor\s*:\s*([^\n]+)", full_text)
+        # 7. Extract Nomor Paspor
+        passport_patterns = [
+            r'Nomor\s+Paspor\s*:\s*([A-Z0-9]+)',
+            r'Paspor\s*:\s*([A-Z0-9]+)',
+        ]
+        
+        passport = None
+        for pattern in passport_patterns:
+            passport = safe_extract(pattern, full_text)
+            if passport:
+                break
+        
+        result["Nomor Paspor"] = passport
 
-        # Extract position/job title
-        position = safe_search(r"Jabatan\s*:\s*([^\n]+)", full_text)
+        # 8. Extract Kewarganegaraan
+        nationality_patterns = [
+            r'Kewarganegaraan\s*:\s*([A-Z\s]+?)(?=\n\s*\d+\.|\n\s*Jabatan)',
+            r'Kewarganegaraan\s*:\s*([^\n]+)',
+        ]
+        
+        nationality = None
+        for pattern in nationality_patterns:
+            nationality = safe_extract(pattern, full_text)
+            if nationality:
+                break
+        
+        result["Kewarganegaraan"] = clean_extracted_text(nationality)
 
-        # Extract Kanim
-        kanim = safe_search(r"Kanim\s+Perpanjangan\s+ITAS/ITAP\s*:\s*([^\n]+)", full_text)
+        # 9. Extract Jabatan
+        position_patterns = [
+            r'Jabatan\s*:\s*([A-Z\s]+?)(?=\n\s*\d+\.|\n\s*Kanim)',
+            r'Jabatan\s*:\s*([^\n]+)',
+        ]
+        
+        position = None
+        for pattern in position_patterns:
+            position = safe_extract(pattern, full_text)
+            if position:
+                break
+        
+        result["Jabatan"] = clean_extracted_text(position)
 
-        # Extract work location
-        work_location = safe_search(r"Lokasi\s+Kerja\s*:\s*([^\n]+)", full_text)
+        # 10. Extract Kanim
+        kanim_patterns = [
+            r'Kanim\s+Perpanjangan\s+ITAS/ITAP\s*:\s*([A-Za-z\s]+?)(?=\n\s*\d+\.|\n\s*Lokasi)',
+            r'Kanim.*?:\s*([^\n]+)',
+        ]
+        
+        kanim = None
+        for pattern in kanim_patterns:
+            kanim = safe_extract(pattern, full_text)
+            if kanim:
+                break
+        
+        result["Kanim"] = clean_extracted_text(kanim)
 
-        # Extract duration
-        duration = safe_search(r"Jangka\s+Waktu\s*:\s*([^\n]+)", full_text)
+        # 11. Extract Lokasi Kerja
+        location_patterns = [
+            r'Lokasi\s+Kerja\s*:\s*([A-Za-z\(\)\s]+?)(?=\n\s*\d+\.|\n\s*Jangka)',
+            r'Lokasi\s+Kerja\s*:\s*([^\n]+)',
+        ]
+        
+        work_location = None
+        for pattern in location_patterns:
+            work_location = safe_extract(pattern, full_text)
+            if work_location:
+                break
+        
+        result["Lokasi Kerja"] = clean_extracted_text(work_location)
 
-        # Extract account number
-        account_no = safe_search(r"No\s+Rekening\s*:\s*([^\n]+)", full_text)
+        # 12. Extract Jangka Waktu
+        duration_patterns = [
+            r'Jangka\s+Waktu\s*:\s*(.*?)(?=\n\s*III\.|$)',
+            r'Jangka\s+Waktu\s*:\s*([^\n]+)',
+        ]
+        
+        duration = None
+        for pattern in duration_patterns:
+            duration_match = re.search(pattern, full_text, re.DOTALL | re.IGNORECASE)
+            if duration_match:
+                duration_text = duration_match.group(1).strip()
+                # Clean multi-line duration
+                duration = re.sub(r'\n\s*', ' ', duration_text)
+                duration = re.sub(r'\s+', ' ', duration).strip()
+                break
+        
+        result["Jangka Waktu"] = duration
 
-        # Extract DKPTKA amount
-        dkptka_amount = safe_search(r"DKPTKA\s+yang\s+dibayarkan\s*:\s*([^\n]+)", full_text)
+        # 13. Extract Tanggal Penerbitan
+        date_patterns = [
+            r'Tanggal\s+Penerbitan\s*:\s*([^\n]+)',
+            r'Tanggal.*?:\s*(\d{1,2}\s+\w+\s+\d{4})',
+        ]
+        
+        issue_date = None
+        for pattern in date_patterns:
+            issue_date = safe_extract(pattern, full_text)
+            if issue_date:
+                break
+        
+        result["Tanggal Penerbitan"] = clean_extracted_text(issue_date)
 
-        result = {
-            "Nama Pemberi Kerja": company_name,
-            "Alamat": address,
-            "No Telepon": phone,
-            "Email": email,
-            "Nama TKA": tka_name,
-            "Tempat/Tanggal Lahir": birth_info,
-            "Nomor Paspor": passport,
-            "Jabatan": position,
-            "Kanim": kanim,
-            "Lokasi Kerja": work_location,
-            "Jangka Waktu": duration,
-            "No Rekening": account_no,
-            "DKPTKA": dkptka_amount,
+        # 14. Extract Bank Info
+        bank_name = safe_extract(r'Nama\s+Bank\s*:\s*([^\n]+)', full_text)
+        result["Nama Bank"] = clean_extracted_text(bank_name)
+
+        # 15. Extract No Rekening
+        account_patterns = [
+            r'No\s+Rekening\s*:\s*([0-9]+)',
+            r'Rekening\s*:\s*([0-9]+)',
+        ]
+        
+        account_no = None
+        for pattern in account_patterns:
+            account_no = safe_extract(pattern, full_text)
+            if account_no:
+                break
+        
+        result["No Rekening"] = account_no
+
+        # 16. Extract Atas Nama Rekening
+        account_name = safe_extract(r'Atas\s+Nama\s+Rekening\s*:\s*([^\n]+)', full_text)
+        result["Atas Nama Rekening"] = clean_extracted_text(account_name)
+
+        # 17. Extract DKPTKA Amount
+        dkptka_patterns = [
+            r'DKPTKA\s+yang\s+dibayarkan\s*:\s*(.*?)(?=\n\s*Setelah|\n\s*V\.|\n\s*\*|$)',
+            r'DKPTKA.*?:\s*(US\$[^\n]+)',
+        ]
+        
+        dkptka_amount = None
+        for pattern in dkptka_patterns:
+            dkptka_match = re.search(pattern, full_text, re.DOTALL | re.IGNORECASE)
+            if dkptka_match:
+                dkptka_text = dkptka_match.group(1).strip()
+                # Clean multi-line DKPTKA amount
+                dkptka_amount = re.sub(r'\n\s*', ' ', dkptka_text)
+                dkptka_amount = re.sub(r'\s+', ' ', dkptka_amount).strip()
+                break
+        
+        result["DKPTKA"] = dkptka_amount
+
+        # 18. Set document type
+        result["Jenis Dokumen"] = "DKPTKA"
+
+        # Filter out None values and empty strings
+        filtered_result = {}
+        for key, value in result.items():
+            if value and str(value).strip():
+                filtered_result[key] = value
+            else:
+                filtered_result[key] = None
+
+        return filtered_result
+
+    except Exception as e:
+        return {
+            "Error": f"Gagal mengekstrak data DKPTKA: {str(e)}",
             "Jenis Dokumen": "DKPTKA"
         }
 
-        # Clean up any remaining formatting issues
-        for key, value in result.items():
-            if isinstance(value, str):
-                # Remove multiple spaces and clean up formatting
-                result[key] = re.sub(r'\s+', ' ', value.strip()) if value else None
 
-    except Exception as e:
-        result = {"Error": f"Data tidak lengkap atau format tidak sesuai: {str(e)}"}
+def validate_dkptka_data(extracted_data: Dict) -> Dict[str, str]:
+    """
+    Validasi data DKPTKA yang diekstrak dan memberikan feedback
+    """
+    validation_result = {
+        "status": "valid",
+        "missing_fields": [],
+        "warnings": []
+    }
+    
+    # Required fields for DKPTKA
+    required_fields = [
+        "Nama Pemberi Kerja",
+        "Alamat", 
+        "Nama TKA",
+        "Nomor Paspor",
+        "DKPTKA"
+    ]
+    
+    missing_fields = []
+    for field in required_fields:
+        if not extracted_data.get(field):
+            missing_fields.append(field)
+    
+    if missing_fields:
+        validation_result["status"] = "incomplete"
+        validation_result["missing_fields"] = missing_fields
+    
+    # Check format warnings
+    if extracted_data.get("Email") and "@" not in str(extracted_data["Email"]):
+        validation_result["warnings"].append("Format email mungkin tidak valid")
+    
+    if extracted_data.get("No Telepon") and not re.search(r'\d', str(extracted_data["No Telepon"])):
+        validation_result["warnings"].append("Format nomor telepon mungkin tidak valid")
+    
+    return validation_result
 
-    return result
+
+# ========================= Main Extraction Function =========================
+def extract_document_data(text: str, document_type: str) -> Dict:
+    """
+    Main function to extract data based on document type
+    """
+    extractors = {
+        "SKTT": extract_sktt,
+        "EVLN": extract_evln,
+        "ITAS": extract_itas,
+        "ITK": extract_itk,
+        "NOTIFIKASI": extract_notifikasi,
+        "DKPTKA": extract_dkptka_info
+    }
+    
+    if document_type.upper() in extractors:
+        try:
+            return extractors[document_type.upper()](text)
+        except Exception as e:
+            return {
+                "Error": f"Gagal mengekstrak dokumen {document_type}: {str(e)}",
+                "Jenis Dokumen": document_type
+            }
+    else:
+        return {
+            "Error": f"Tipe dokumen {document_type} tidak didukung",
+            "Jenis Dokumen": document_type
+        }
+
+
+# ========================= Test Function =========================
+def test_extraction(text: str, document_type: str):
+    """Test function untuk menguji ekstraksi berbagai jenis dokumen"""
+    print(f"=== HASIL EKSTRAKSI {document_type.upper()} ===")
+    
+    # Extract data
+    extracted_data = extract_document_data(text, document_type)
+    
+    # Display results
+    for key, value in extracted_data.items():
+        print(f"{key:<25}: {value}")
+    
+    # Special validation for DKPTKA
+    if document_type.upper() == "DKPTKA":
+        print("\n=== VALIDASI DATA DKPTKA ===")
+        validation = validate_dkptka_data(extracted_data)
+        print(f"Status: {validation['status']}")
+        
+        if validation['missing_fields']:
+            print(f"Field yang hilang: {', '.join(validation['missing_fields'])}")
+        
+        if validation['warnings']:
+            print(f"Peringatan: {'; '.join(validation['warnings'])}")
+    
+    return extracted_data

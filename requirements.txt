@@ -1,1 +1,16 @@
-# trimmed for brevity...
+streamlit>=1.25.0
+pdfplumber>=0.10.2
+pandas>=1.3.0
+openpyxl>=3.0.10
+
+# Untuk regex dan date handling (bawaan Python, tetap dicantumkan untuk kejelasan)
+re
+io
+hashlib
+shutil
+zipfile
+tempfile
+base64
+
+# Optional (jika ingin menampilkan hasil lebih interaktif)
+matplotlib>=3.4.0

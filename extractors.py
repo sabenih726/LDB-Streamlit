@@ -40,8 +40,24 @@ def extract_evln(text):
         "Jenis Dokumen": "EVLN"
     }
 
-    for line in text.split("\n"):
-        if re.search(r"(?i)\bName\b|\bNama\b", line):
+    lines = text.split("\n")
+
+    # [Tambahan] Cari nama berdasarkan sapaan seperti Dear Mr./Ms.
+    for i, line in enumerate(lines):
+        if re.search(r"Dear\s+(Mr\.|Ms\.|Sir|Madam)?", line, re.IGNORECASE):
+            if i + 1 < len(lines):
+                name_candidate = lines[i + 1].strip()
+                if 3 < len(name_candidate) < 50:
+                    # Gunakan clean_text jika tersedia
+                    if 'clean_text' in globals():
+                        data["Name"] = clean_text(name_candidate, is_name_or_pob=True)
+                    else:
+                        data["Name"] = re.sub(r'[^A-Z ]', '', name_candidate.upper())
+            break  # hentikan loop setelah dapat nama
+
+    # Lanjutkan parsing baris seperti biasa
+    for line in lines:
+        if not data["Name"] and re.search(r"(?i)\bName\b|\bNama\b", line):
             parts = line.split(":")
             if len(parts) > 1:
                 data["Name"] = clean_text(parts[1], is_name_or_pob=True)

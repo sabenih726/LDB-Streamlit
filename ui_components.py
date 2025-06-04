@@ -73,7 +73,10 @@ def render_upload_section():
     st.markdown('<div class="upload-card">', unsafe_allow_html=True)
     st.subheader("Upload PDF Files")
     uploaded_files = st.file_uploader("Choose one or more PDF files", type=["pdf"], accept_multiple_files=True)
-    doc_type = st.selectbox("Document Type", ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi"])
+    
+    # ✅ Tambahkan DKPTKA ke dalam opsi dokumen
+    doc_type = st.selectbox("Document Type", ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"])
+    
     use_name = st.checkbox("Use Name for Filename", value=True)
     use_passport = st.checkbox("Use Passport Number for Filename", value=True)
     st.markdown('</div>', unsafe_allow_html=True)

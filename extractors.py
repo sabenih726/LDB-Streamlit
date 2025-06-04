@@ -232,13 +232,33 @@ def extract_dkptka_info(full_text):
         return cleaned
 
     try:
-        # Extract company name - look for PT. pattern
-        company_match = re.search(r'"([^"]*PT[^"]*)"', full_text, re.IGNORECASE)
-        company_name = company_match.group(1).strip() if company_match else None
+        # Extract company name - multiple patterns to handle different formats
+        company_name = None
         
-        # If no quotes, try alternative pattern
+        # Pattern 1: Look for quoted company name with PT
+        company_match = re.search(r'"([^"]*PT[^"]*)"', full_text, re.IGNORECASE)
+        if company_match:
+            company_name = company_match.group(1).strip()
+        
+        # Pattern 2: Look for company name at the beginning, before "Alamat"
         if not company_name:
-            company_name = safe_search(r"(?:Nama\s+)?Pemberi\s+Kerja[:\s]*([^\n]+)", full_text)
+            # Try to find company name in the structured format
+            company_match = re.search(r'(?:VIRTUE\s+DRAGON\s+NICKEL\s+INDUSTRY\s+PT\.?|[A-Z\s]+PT\.?)', full_text)
+            if company_match:
+                company_name = company_match.group(0).strip()
+        
+        # Pattern 3: Extract from the document structure (before address)
+        if not company_name:
+            # Look for the pattern where company name appears before "2. Alamat"
+            company_match = re.search(r'"([^"]*VIRTUE[^"]*)"', full_text, re.IGNORECASE)
+            if company_match:
+                company_name = company_match.group(1).strip()
+        
+        # Pattern 4: Last resort - look for any text before "Alamat :"
+        if not company_name:
+            company_match = re.search(r'([A-Z][A-Z\s]*PT\.?[A-Z\s]*)\s*(?=.*Alamat\s*:)', full_text, re.IGNORECASE)
+            if company_match:
+                company_name = company_match.group(1).strip()
 
         # Extract address - handle multi-line format
         address_match = re.search(r'Alamat\s*:\s*(.*?)(?=\d+\.\s*Nomor\s+Telepon|III\.)', full_text, re.DOTALL | re.IGNORECASE)
@@ -277,9 +297,6 @@ def extract_dkptka_info(full_text):
         # Extract DKPTKA amount
         dkptka_amount = safe_search(r"DKPTKA\s+yang\s+dibayarkan\s*:\s*([^\n]+)", full_text)
 
-        # Extract nationality (if available)
-        nationality = safe_search(r"Kewarganegaraan\s*:\s*([^\n]+)", full_text)
-
         result = {
             "Nama Pemberi Kerja": company_name,
             "Alamat": address,
@@ -294,7 +311,6 @@ def extract_dkptka_info(full_text):
             "Jangka Waktu": duration,
             "No Rekening": account_no,
             "DKPTKA": dkptka_amount,
-            "Kewarganegaraan": nationality,
             "Jenis Dokumen": "DKPTKA"
         }
 

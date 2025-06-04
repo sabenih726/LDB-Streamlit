@@ -231,11 +231,7 @@ def extract_dkptka_info(full_text):
         cleaned = re.sub(r'\s+', ' ', text.strip())
         return cleaned
 
-    try:
-        # Extract company name - multiple patterns to handle different formats
-        company_name = None
-        
-        # Pattern 1: Look for quoted company name with PT
+    try:   
         # 1. Extract Nama Pemberi Kerja
         # Pattern yang lebih spesifik untuk menangkap nama perusahaan
         company_patterns = [

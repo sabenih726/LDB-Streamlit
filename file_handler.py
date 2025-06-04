@@ -5,15 +5,7 @@ import zipfile
 import io
 import pdfplumber
 import pandas as pd
-
-from extractors import (
-    extract_sktt,
-    extract_evln,
-    extract_itas,
-    extract_itk,
-    extract_notifikasi,
-    extract_dkptka_info  # ✅ tambahkan ini
-)
+from extractors import extract_sktt, extract_evln, extract_itas, extract_itk, extract_notifikasi, extract_dkptka_info
 from helpers import generate_new_filename
 
 def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
@@ -22,20 +14,9 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
     temp_dir = tempfile.mkdtemp()
 
     for uploaded_file in uploaded_files:
-        pdf_bytes = uploaded_file.read()
-        pdf_stream = io.BytesIO(pdf_bytes)
-
-        # === DKPTKA: panggil fungsi khusus dengan path file sementara ===
-        if doc_type == "DKPTKA":
-            # Simpan sementara file ke disk agar bisa dibuka oleh extract_dkptka_info
-            temp_pdf_path = os.path.join(temp_dir, uploaded_file.name)
-            with open(temp_pdf_path, "wb") as f:
-                f.write(pdf_bytes)
-            extracted_data = extract_dkptka_info(temp_pdf_path)
-        else:
-            with pdfplumber.open(pdf_stream) as pdf:
-                texts = [page.extract_text() for page in pdf.pages if page.extract_text()]
-                full_text = "\n".join(texts)
+        with pdfplumber.open(io.BytesIO(uploaded_file.read())) as pdf:
+            texts = [page.extract_text() for page in pdf.pages if page.extract_text()]
+            full_text = "\n".join(texts)
 
             if doc_type == "SKTT":
                 extracted_data = extract_sktt(full_text)
@@ -47,6 +28,8 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
                 extracted_data = extract_itk(full_text)
             elif doc_type == "Notifikasi":
                 extracted_data = extract_notifikasi(full_text)
+            elif doc_type == "DKPTKA":
+                extracted_data = extract_dkptka_info(full_text)
             else:
                 extracted_data = {}
 

@@ -236,29 +236,22 @@ def extract_dkptka_info(full_text):
         company_name = None
         
         # Pattern 1: Look for quoted company name with PT
-        company_match = re.search(r'"([^"]*PT[^"]*)"', full_text, re.IGNORECASE)
-        if company_match:
-            company_name = company_match.group(1).strip()
+        # 1. Extract Nama Pemberi Kerja
+        # Pattern yang lebih spesifik untuk menangkap nama perusahaan
+        company_patterns = [
+            r'Nama\s+Pemberi\s+Kerja\s*:\s*([^\n]+)',  # Format standar
+            r'"([^"]*PT[^"]*)"',  # Nama dalam tanda petik dengan PT
+            r'(?:^|\n)\s*([A-Z][A-Z\s]*PT\.?[A-Z\s]*)\s*(?=\n.*Alamat)',  # Nama sebelum alamat
+        ]
         
-        # Pattern 2: Look for company name at the beginning, before "Alamat"
-        if not company_name:
-            # Try to find company name in the structured format
-            company_match = re.search(r'(?:VIRTUE\s+DRAGON\s+NICKEL\s+INDUSTRY\s+PT\.?|[A-Z\s]+PT\.?)', full_text)
-            if company_match:
-                company_name = company_match.group(0).strip()
+        company_name = None
+        for pattern in company_patterns:
+            company_name = safe_extract(pattern, full_text)
+            if company_name:
+                company_name = clean_text(company_name)
+                break
         
-        # Pattern 3: Extract from the document structure (before address)
-        if not company_name:
-            # Look for the pattern where company name appears before "2. Alamat"
-            company_match = re.search(r'"([^"]*VIRTUE[^"]*)"', full_text, re.IGNORECASE)
-            if company_match:
-                company_name = company_match.group(1).strip()
-        
-        # Pattern 4: Last resort - look for any text before "Alamat :"
-        if not company_name:
-            company_match = re.search(r'([A-Z][A-Z\s]*PT\.?[A-Z\s]*)\s*(?=.*Alamat\s*:)', full_text, re.IGNORECASE)
-            if company_match:
-                company_name = company_match.group(1).strip()
+        result["Nama Pemberi Kerja"] = company_name
 
         # Extract address - handle multi-line format
         address_match = re.search(r'Alamat\s*:\s*(.*?)(?=\d+\.\s*Nomor\s+Telepon|III\.)', full_text, re.DOTALL | re.IGNORECASE)

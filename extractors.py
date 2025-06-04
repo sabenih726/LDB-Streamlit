@@ -429,24 +429,6 @@ def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
         
         result["Jangka Waktu"] = duration
 
-        # 13. Extract Tanggal Penerbitan
-        date_patterns = [
-            r'Tanggal\s+Penerbitan\s*:\s*([^\n]+)',
-            r'Tanggal.*?:\s*(\d{1,2}\s+\w+\s+\d{4})',
-        ]
-        
-        issue_date = None
-        for pattern in date_patterns:
-            issue_date = safe_extract(pattern, full_text)
-            if issue_date:
-                break
-        
-        result["Tanggal Penerbitan"] = clean_extracted_text(issue_date)
-
-        # 14. Extract Bank Info
-        bank_name = safe_extract(r'Nama\s+Bank\s*:\s*([^\n]+)', full_text)
-        result["Nama Bank"] = clean_extracted_text(bank_name)
-
         # 15. Extract No Rekening
         account_patterns = [
             r'No\s+Rekening\s*:\s*([0-9]+)',
@@ -460,10 +442,6 @@ def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
                 break
         
         result["No Rekening"] = account_no
-
-        # 16. Extract Atas Nama Rekening
-        account_name = safe_extract(r'Atas\s+Nama\s+Rekening\s*:\s*([^\n]+)', full_text)
-        result["Atas Nama Rekening"] = clean_extracted_text(account_name)
 
         # 17. Extract DKPTKA Amount
         dkptka_patterns = [

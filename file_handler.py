@@ -14,10 +14,7 @@ def process_pdfs(uploaded_files, doc_type, use_name, use_passport):
     temp_dir = tempfile.mkdtemp()
 
     for uploaded_file in uploaded_files:
-        uploaded_file.seek(0)
-        file_bytes = uploaded_file.read()
-
-        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+        with pdfplumber.open(io.BytesIO(uploaded_file.read())) as pdf:
             texts = [page.extract_text() for page in pdf.pages if page.extract_text()]
             full_text = "\n".join(texts)
 

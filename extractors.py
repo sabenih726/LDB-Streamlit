@@ -1,4 +1,5 @@
 import re
+import pdfplumber
 from helpers import clean_text, format_date, split_birth_place_date
 
 # Ekstraksi SKTT

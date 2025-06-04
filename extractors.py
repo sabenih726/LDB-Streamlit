@@ -215,24 +215,25 @@ def extract_notifikasi(text):
     return data
 
 # ========================= DKPTKA =========================
-def extract_dkptka_info(pdf_path):
-    with pdfplumber.open(pdf_path) as pdf:
-        text = "\n".join([page.extract_text() for page in pdf.pages])
-
-    result = {
-        "Nama Pemberi Kerja": re.search(r"Nama Pemberi Kerja\s*:\s*(.*)", text).group(1).strip(),
-        "Alamat": re.search(r"Alamat\s*:\s*(.*?)\n\n", text, re.DOTALL).group(1).replace("\n", " ").strip(),
-        "No Telepon": re.search(r"Nomor Telepon\s*:\s*(.*)", text).group(1).strip(),
-        "Email": re.search(r"Email\s*:\s*(.*)", text).group(1).strip(),
-        "Nama TKA": re.search(r"Nama TKA\s*:\s*(.*)", text).group(1).strip(),
-        "Tempat/Tanggal Lahir": re.search(r"Tempat / Tgl Lahir\s*:\s*(.*)", text).group(1).strip(),
-        "Nomor Paspor": re.search(r"Nomor Paspor\s*:\s*(.*)", text).group(1).strip(),
-        "Jabatan": re.search(r"Jabatan\s*:\s*(.*)", text).group(1).strip(),
-        "Kanim": re.search(r"Kanim Perpanjangan ITAS/ITAP\s*:\s*(.*)", text).group(1).strip(),
-        "Lokasi Kerja": re.search(r"Lokasi Kerja\s*:\s*(.*)", text).group(1).strip(),
-        "Jangka Waktu": re.search(r"Jangka Waktu\s*:\s*(.*)", text).group(1).strip(),
-        "No Rekening": re.search(r"No Rekening\s*:\s*(.*)", text).group(1).strip(),
-        "DKPTKA": re.search(r"DKPTKA yang dibayarkan\s*:\s*(.*)", text).group(1).strip()
-    }
+def extract_dkptka_info(full_text):
+    try:
+        result = {
+            "Nama Pemberi Kerja": re.search(r"Nama Pemberi Kerja\s*:\s*(.*)", full_text).group(1).strip(),
+            "Alamat": re.search(r"Alamat\s*:\s*(.*?)\n\n", full_text, re.DOTALL).group(1).replace("\n", " ").strip(),
+            "No Telepon": re.search(r"Nomor Telepon\s*:\s*(.*)", full_text).group(1).strip(),
+            "Email": re.search(r"Email\s*:\s*(.*)", full_text).group(1).strip(),
+            "Nama TKA": re.search(r"Nama TKA\s*:\s*(.*)", full_text).group(1).strip(),
+            "Tempat/Tanggal Lahir": re.search(r"Tempat\s*/\s*Tgl Lahir\s*:\s*(.*)", full_text).group(1).strip(),
+            "Nomor Paspor": re.search(r"Nomor Paspor\s*:\s*(.*)", full_text).group(1).strip(),
+            "Jabatan": re.search(r"Jabatan\s*:\s*(.*)", full_text).group(1).strip(),
+            "Kanim": re.search(r"Kanim Perpanjangan ITAS/ITAP\s*:\s*(.*)", full_text).group(1).strip(),
+            "Lokasi Kerja": re.search(r"Lokasi Kerja\s*:\s*(.*)", full_text).group(1).strip(),
+            "Jangka Waktu": re.search(r"Jangka Waktu\s*:\s*(.*)", full_text).group(1).strip(),
+            "No Rekening": re.search(r"No Rekening\s*:\s*(.*)", full_text).group(1).strip(),
+            "DKPTKA": re.search(r"DKPTKA yang dibayarkan\s*:\s*(.*)", full_text).group(1).strip()
+        }
+    except AttributeError as e:
+        # Jika ada pattern yang tidak ditemukan, hindari crash
+        result = {"Error": f"Data tidak lengkap atau format tidak sesuai: {str(e)}"}
 
     return result

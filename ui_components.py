@@ -7,7 +7,7 @@ from helpers import get_greeting
 def login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<h1 style="text-align:center;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 style="text-align:center;">PT LAMAN DAVINDO BAHMAN</h1>', unsafe_allow_html=True)
         st.markdown('<p style="text-align:center;">Sistem Ekstraksi Dokumen Imigrasi</p>', unsafe_allow_html=True)
         st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -259,20 +259,9 @@ def render_process_button(uploaded_files):
             )
     return False
 
-def render_progress_loader():
-    """Render animated progress loader"""
-    return st.markdown('''
-    <div style="background-color: #f1f5f9; border-radius: 0.5rem; padding: 1.5rem; text-align: center;">
-        <div style="margin-bottom: 1rem;">
-            <img src="https://via.placeholder.com/50x50?text=⚙️" width="50" height="50" style="margin: 0 auto;">
-        </div>
-        <h3 style="margin-bottom: 0.5rem;">Processing Documents</h3>
-        <p style="color: #64748b;">Please wait a moment while we extract the information from your document...</p>
-        <div style="margin-top: 1rem; height: 0.5rem; background-color: #e2e8f0; border-radius: 1rem; overflow: hidden;">
-            <div style="width: 75%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #3b82f6); border-radius: 1rem; animation: progress 2s infinite;"></div>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
+def render_simple_loader():
+    """Render simple loading message without animation"""
+    return st.info("🔄 Memproses dokumen... Mohon tunggu sebentar.")
 
 def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploaded_files):
     """Render results in organized tabs"""
@@ -435,20 +424,15 @@ def render_main_app():
         process_button = render_process_button(uploaded_files)
         
         if process_button:
-            # Show progress loader
-            progress_placeholder = st.empty()
-            progress_placeholder.markdown(render_progress_loader(), unsafe_allow_html=True)
+            # Show simple loading message
+            with st.spinner("Memproses dokumen... Mohon tunggu sebentar."):
+                # Process files
+                from file_handler import process_pdfs
+                df, excel_path, renamed_files, zip_path, temp_dir = process_pdfs(
+                    uploaded_files, doc_type, use_name, use_passport
+                )
             
-            # Process files
-            from file_handler import process_pdfs
-            df, excel_path, renamed_files, zip_path, temp_dir = process_pdfs(
-                uploaded_files, doc_type, use_name, use_passport
-            )
-            
-            # Clear progress loader
-            progress_placeholder.empty()
-            
-            # Show results
+            # Show results immediately after processing
             render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploaded_files)
             
             # Clean up temp directory

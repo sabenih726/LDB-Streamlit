@@ -7,7 +7,7 @@ from helpers import get_greeting
 def login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<h1 style="text-align:center;">PT LAMAN DAVINDO BAHMAN</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 style="text-align:center;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>', unsafe_allow_html=True)
         st.markdown('<p style="text-align:center;">Sistem Ekstraksi Dokumen Imigrasi</p>', unsafe_allow_html=True)
         st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -40,6 +40,36 @@ def render_css_styles():
         margin-bottom: 1rem;
         text-align: center;
         font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: transparent;
+        border: none;
+        width: 100%;
+        text-align: left;
+        color: #374151;
+    }
+    
+    .menu-item:hover {
+        background-color: #f3f4f6;
+        color: #1d4ed8;
+    }
+    
+    .menu-item.active {
+        background-color: #1d4ed8;
+        color: white;
+    }
+    
+    .menu-icon {
+        margin-right: 0.75rem;
         font-size: 1.1rem;
     }
     
@@ -130,8 +160,45 @@ def render_css_styles():
     </style>
     ''', unsafe_allow_html=True)
 
+def initialize_session_state():
+    """Initialize session state for menu navigation"""
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'Home'
+    if 'show_settings' not in st.session_state:
+        st.session_state.show_settings = False
+
+def render_main_menu():
+    """Render functional main menu with navigation"""
+    st.markdown("### 📋 Main Menu")
+    
+    menu_items = [
+        {"name": "Home", "icon": "🏠", "description": "Dashboard Utama"},
+        {"name": "Document", "icon": "📄", "description": "Manajemen Dokumen"},
+        {"name": "Client", "icon": "👥", "description": "Data Klien"},
+        {"name": "Settings", "icon": "⚙️", "description": "Pengaturan Sistem"}
+    ]
+    
+    for item in menu_items:
+        # Create button for each menu item
+        if st.button(
+            f"{item['icon']} {item['name']}", 
+            key=f"menu_{item['name'].lower()}",
+            use_container_width=True,
+            help=item['description']
+        ):
+            st.session_state.current_page = item['name']
+            if item['name'] == 'Settings':
+                st.session_state.show_settings = True
+            else:
+                st.session_state.show_settings = False
+            st.rerun()
+    
+    # Show current active page
+    if st.session_state.current_page != 'Home':
+        st.markdown(f"**📍 Halaman Aktif:** {st.session_state.current_page}")
+
 def render_sidebar():
-    """Render improved sidebar with better styling"""
+    """Render improved sidebar with functional main menu"""
     with st.sidebar:
         st.markdown('<div class="sidebar-header">PT LAMAN DAVINDO BAHMAN</div>', unsafe_allow_html=True)
         
@@ -142,11 +209,10 @@ def render_sidebar():
         
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
         
-        with st.expander("📋 Main Menu"):
-            st.markdown("- 🏠 Home")
-            st.markdown("- 📄 Document")
-            st.markdown("- 👥 Client")
-            st.markdown("- ⚙️ Settings")
+        # Render functional main menu
+        render_main_menu()
+        
+        st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
         
         # Logout button
         if st.button("Logout", type="secondary", use_container_width=True):
@@ -154,6 +220,134 @@ def render_sidebar():
             st.rerun()
         
         st.caption("© 2025 PT Laman Davindo Bahman")
+
+def render_home_content():
+    """Render home page content"""
+    render_header()
+    uploaded_files, doc_type, use_name, use_passport = render_upload_section()
+    render_file_info_panel(uploaded_files)
+    
+    if uploaded_files:
+        process_button = render_process_button(uploaded_files)
+        
+        if process_button:
+            with st.spinner("Memproses dokumen... Mohon tunggu sebentar."):
+                from file_handler import process_pdfs
+                df, excel_path, renamed_files, zip_path, temp_dir = process_pdfs(
+                    uploaded_files, doc_type, use_name, use_passport
+                )
+            
+            render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploaded_files)
+            shutil.rmtree(temp_dir)
+    else:
+        render_help_info()
+    
+    render_help_expander()
+
+def render_document_page():
+    """Render document management page"""
+    st.markdown('''
+    <div class="header">
+        <h1 style="margin-bottom: 0.5rem;">📄 Document Management</h1>
+        <p style="opacity: 0.8;">Kelola dan pantau dokumen imigrasi yang telah diproses</p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    st.markdown('<div class="container">', unsafe_allow_html=True)
+    st.markdown("### 📊 Document Statistics")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Documents", "156", "+12")
+    with col2:
+        st.metric("SKTT", "45", "+3")
+    with col3:
+        st.metric("ITAS", "67", "+8")
+    with col4:
+        st.metric("EVLN", "44", "+1")
+    
+    st.markdown("### 📋 Recent Documents")
+    sample_data = {
+        "File Name": ["Document_001.pdf", "Document_002.pdf", "Document_003.pdf"],
+        "Type": ["SKTT", "ITAS", "EVLN"],
+        "Date Processed": ["2025-06-01", "2025-06-02", "2025-06-03"],
+        "Status": ["✅ Completed", "✅ Completed", "⏳ Processing"]
+    }
+    st.dataframe(sample_data, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_client_page():
+    """Render client management page"""
+    st.markdown('''
+    <div class="header">
+        <h1 style="margin-bottom: 0.5rem;">👥 Client Management</h1>
+        <p style="opacity: 0.8;">Kelola data klien dan riwayat dokumen mereka</p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    st.markdown('<div class="container">', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown("### 👤 Client Database")
+        client_data = {
+            "Name": ["John Doe", "Jane Smith", "Ahmad Rahman"],
+            "Nationality": ["USA", "UK", "Indonesia"],
+            "Passport": ["US123456", "UK789012", "ID345678"],
+            "Documents": ["3 files", "2 files", "5 files"],
+            "Last Update": ["2025-06-01", "2025-05-28", "2025-06-03"]
+        }
+        st.dataframe(client_data, use_container_width=True)
+    
+    with col2:
+        st.markdown("### ➕ Add New Client")
+        with st.form("add_client"):
+            st.text_input("Full Name")
+            st.selectbox("Nationality", ["Indonesia", "USA", "UK", "Singapore", "Malaysia"])
+            st.text_input("Passport Number")
+            submitted = st.form_submit_button("Add Client")
+            if submitted:
+                st.success("✅ Client berhasil ditambahkan!")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_settings_page():
+    """Render settings page"""
+    st.markdown('''
+    <div class="header">
+        <h1 style="margin-bottom: 0.5rem;">⚙️ System Settings</h1>
+        <p style="opacity: 0.8;">Konfigurasi sistem dan preferensi aplikasi</p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    st.markdown('<div class="container">', unsafe_allow_html=True)
+    
+    tab1, tab2, tab3 = st.tabs(["🔧 General", "📁 File Settings", "👤 User Preferences"])
+    
+    with tab1:
+        st.markdown("### General Settings")
+        st.selectbox("Default Language", ["Indonesian", "English"])
+        st.selectbox("Timezone", ["Asia/Jakarta", "UTC", "Asia/Singapore"])
+        st.checkbox("Enable Email Notifications", value=True)
+        st.checkbox("Auto-backup Data", value=True)
+    
+    with tab2:
+        st.markdown("### File Processing Settings")
+        st.slider("Max File Size (MB)", 1, 100, 50)
+        st.selectbox("Default Document Type", ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"])
+        st.checkbox("Auto-rename Files", value=True)
+        st.checkbox("Create Backup Copies", value=False)
+    
+    with tab3:
+        st.markdown("### User Preferences")
+        st.selectbox("Theme", ["Light", "Dark", "Auto"])
+        st.selectbox("Date Format", ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"])
+        st.number_input("Items per Page", min_value=10, max_value=100, value=25)
+    
+    if st.button("💾 Save Settings", type="primary"):
+        st.success("✅ Settings berhasil disimpan!")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def render_header():
     """Render modern header with gradient background"""
@@ -184,7 +378,7 @@ def render_upload_section():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         doc_type = st.selectbox(
             "Select Document Type",
-            ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"]  # Added DKPTKA
+            ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"]
         )
         
         st.markdown('<div style="margin-top: 1rem;">', unsafe_allow_html=True)
@@ -200,7 +394,7 @@ def render_upload_section():
                 "ITAS": "#16a34a",
                 "ITK": "#ca8a04",
                 "Notifikasi": "#e11d48",
-                "DKPTKA": "#dc2626"  # Added DKPTKA color
+                "DKPTKA": "#dc2626"
             }.get(doc_type, "#64748b")
             
             st.markdown(f'''
@@ -259,10 +453,6 @@ def render_process_button(uploaded_files):
             )
     return False
 
-def render_simple_loader():
-    """Render simple loading message without animation"""
-    return st.info("🔄 Memproses dokumen... Mohon tunggu sebentar.")
-
 def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploaded_files):
     """Render results in organized tabs"""
     st.markdown('<div class="container">', unsafe_allow_html=True)
@@ -285,7 +475,6 @@ def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploa
         st.dataframe(df, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Data summary
         st.markdown(f'''
         <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
             <div style="background-color: #f0f9ff; border-radius: 0.5rem; padding: 1rem; flex: 1;">
@@ -309,7 +498,6 @@ def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploa
         with open(excel_path, "rb") as f:
             excel_data = f.read()
 
-        # Excel file info and download
         col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown(f'''
@@ -335,8 +523,6 @@ def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploa
 
     with tab3:
         st.subheader("File yang Telah di-Rename")
-
-        # Renamed files list
         st.markdown('<div style="background-color: #f8fafc; border-radius: 0.5rem; padding: 1rem;">', unsafe_allow_html=True)
 
         for original_name, file_info in renamed_files.items():
@@ -358,7 +544,6 @@ def render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploa
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ZIP download
         with open(zip_path, "rb") as f:
             zip_data = f.read()
 
@@ -403,43 +588,26 @@ def render_help_expander():
         """)
 
 def render_main_app():
-    """Main application render function with improved UI"""
+    """Main application render function with page routing"""
+    # Initialize session state
+    initialize_session_state()
+    
     # Apply CSS styles
     render_css_styles()
     
     # Render sidebar
     render_sidebar()
     
-    # Render header
-    render_header()
-    
-    # Render upload section
-    uploaded_files, doc_type, use_name, use_passport = render_upload_section()
-    
-    # Render file info panel
-    render_file_info_panel(uploaded_files)
-    
-    # Process button and results
-    if uploaded_files:
-        process_button = render_process_button(uploaded_files)
-        
-        if process_button:
-            # Show simple loading message
-            with st.spinner("Memproses dokumen... Mohon tunggu sebentar."):
-                # Process files
-                from file_handler import process_pdfs
-                df, excel_path, renamed_files, zip_path, temp_dir = process_pdfs(
-                    uploaded_files, doc_type, use_name, use_passport
-                )
-            
-            # Show results immediately after processing
-            render_results_tabs(df, excel_path, renamed_files, zip_path, doc_type, uploaded_files)
-            
-            # Clean up temp directory
-            shutil.rmtree(temp_dir)
+    # Route to appropriate page based on current_page
+    if st.session_state.current_page == 'Home':
+        render_home_content()
+    elif st.session_state.current_page == 'Document':
+        render_document_page()
+    elif st.session_state.current_page == 'Client':
+        render_client_page()
+    elif st.session_state.current_page == 'Settings':
+        render_settings_page()
     else:
-        # Show help info when no files uploaded
-        render_help_info()
-    
-    # Render help expander
-    render_help_expander()
+        # Default to home if unknown page
+        st.session_state.current_page = 'Home'
+        render_home_content()

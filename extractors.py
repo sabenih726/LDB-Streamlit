@@ -443,21 +443,24 @@ def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
         
         result["Tanggal Penerbitan"] = issue_date
 
-        # 14. Billing Code - More comprehensive patterns
-        billing_patterns = [
-            r'Kode\s+Billing\s+Pembayaran\s*DKPTKA\s*:\s*([0-9]{10,})',
-            r'Kode\s+Billing.*?DKPTKA\s*:\s*([0-9]{10,})',
-            r'Billing.*?DKPTKA\s*:\s*([0-9]{10,})',
-            r'DKPTKA\s*:\s*([0-9]{10,})',
+        # 14. Extract Kode Billing Pembayaran DKPTKA - perbaikan untuk baris terputus
+        billing_code = None
+
+        # Gabungkan beberapa baris untuk mencari pola multiline
+        multiline_text = re.sub(r'\n', ' ', full_text)
+
+        billing_code_patterns = [
+            r'Kode\s+Billing\s+Pembayaran\s+DKPTKA\s*:\s*(\d{10,})',
+            r'Kode\s+Billing\s+.*?DKPTKA\s*:\s*(\d{10,})',
+            r'DKPTKA\s*:\s*(\d{10,})'
         ]
-        
-        for pattern in billing_patterns:
-            billing = safe_extract(pattern, full_text)
-            if billing and len(billing) >= 10 and billing.isdigit():
-                result["Kode Billing Pembayaran"] = billing
+
+        for pattern in billing_code_patterns:
+            billing_code = safe_extract(pattern, multiline_text)
+            if billing_code:
                 break
-        else:
-            result["Kode Billing Pembayaran"] = None
+
+        result["Kode Billing Pembayaran"] = billing_code
 
         # 15. Extract No Rekening
         account_patterns = [

@@ -429,6 +429,36 @@ def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
         
         result["Jangka Waktu"] = duration
 
+        # 13. Extract Tanggal Penerbitan
+        issue_date_patterns = [
+            r'Tanggal\s+Penerbitan\s*:\s*(\d{1,2}\s+\w+\s+\d{4})',
+            r'Tanggal\s+Penerbitan\s*:\s*(\d{1,2}[\-/]\d{1,2}[\-/]\d{4})',
+        ]
+        
+        issue_date = None
+        for pattern in issue_date_patterns:
+            issue_date = safe_extract(pattern, full_text)
+            if issue_date:
+                break
+        
+        result["Tanggal Penerbitan"] = issue_date
+
+        # 14. Extract Kode Billing Pembayaran DKPTKA - FIELD BARU
+        billing_code_patterns = [
+            r'Kode\s+Billing\s+Pembayaran\s*DKPTKA\s*:\s*([0-9]+)',
+            r'Kode\s+Billing.*?DKPTKA\s*:\s*([0-9]+)',
+            r'Billing.*?DKPTKA\s*:\s*([0-9]+)',
+            r'DKPTKA\s*:\s*([0-9]{12,})',  # Pattern for long numeric codes
+        ]
+        
+        billing_code = None
+        for pattern in billing_code_patterns:
+            billing_code = safe_extract(pattern, full_text)
+            if billing_code and len(billing_code) >= 10:  # Ensure it's a valid billing code
+                break
+        
+        result["Kode Billing Pembayaran"] = billing_code
+
         # 15. Extract No Rekening
         account_patterns = [
             r'No\s+Rekening\s*:\s*([0-9]+)',
@@ -484,6 +514,7 @@ def extract_dkptka_info(full_text: str) -> Dict[str, Optional[str]]:
 def validate_dkptka_data(extracted_data: Dict) -> Dict[str, str]:
     """
     Validasi data DKPTKA yang diekstrak dan memberikan feedback
+    Termasuk validasi Kode Billing Pembayaran
     """
     validation_result = {
         "status": "valid",
@@ -491,12 +522,13 @@ def validate_dkptka_data(extracted_data: Dict) -> Dict[str, str]:
         "warnings": []
     }
     
-    # Required fields for DKPTKA
+    # Required fields for DKPTKA (updated with new field)
     required_fields = [
         "Nama Pemberi Kerja",
         "Alamat", 
         "Nama TKA",
         "Nomor Paspor",
+        "Kode Billing Pembayaran",
         "DKPTKA"
     ]
     
@@ -516,8 +548,13 @@ def validate_dkptka_data(extracted_data: Dict) -> Dict[str, str]:
     if extracted_data.get("No Telepon") and not re.search(r'\d', str(extracted_data["No Telepon"])):
         validation_result["warnings"].append("Format nomor telepon mungkin tidak valid")
     
+    # Validate Kode Billing Pembayaran
+    billing_code = extracted_data.get("Kode Billing Pembayaran")
+    if billing_code:
+        if not re.match(r'^\d{10,}$', str(billing_code)):
+            validation_result["warnings"].append("Format kode billing pembayaran mungkin tidak valid (harus berupa angka minimal 10 digit)")
+    
     return validation_result
-
 
 # ========================= Main Extraction Function =========================
 def extract_document_data(text: str, document_type: str) -> Dict:

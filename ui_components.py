@@ -245,37 +245,48 @@ def render_home_content():
     render_help_expander()
 
 def render_document_page():
-    """Render document management page"""
+    """Render document management page using data from CSV"""
     st.markdown('''
     <div class="header">
         <h1 style="margin-bottom: 0.5rem;">📄 Document Management</h1>
         <p style="opacity: 0.8;">Kelola dan pantau dokumen imigrasi yang telah diproses</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     st.markdown('<div class="container">', unsafe_allow_html=True)
     st.markdown("### 📊 Document Statistics")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Total Documents", "156", "+12")
-    with col2:
-        st.metric("SKTT", "45", "+3")
-    with col3:
-        st.metric("ITAS", "67", "+8")
-    with col4:
-        st.metric("EVLN", "44", "+1")
-    
-    st.markdown("### 📋 Recent Documents")
-    sample_data = {
-        "File Name": ["Document_001.pdf", "Document_002.pdf", "Document_003.pdf"],
-        "Type": ["SKTT", "ITAS", "EVLN"],
-        "Date Processed": ["2025-06-01", "2025-06-02", "2025-06-03"],
-        "Status": ["✅ Completed", "✅ Completed", "⏳ Processing"]
-    }
-    st.dataframe(sample_data, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
+    csv_path = Path("data/processed_documents.csv")
+    if not csv_path.exists():
+        st.warning("⚠️ Belum ada dokumen yang diproses. Silakan lakukan ekstraksi terlebih dahulu.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+
+    try:
+        df = pd.read_csv(csv_path)
+
+        # Hitung statistik jenis dokumen
+        doc_counts = df['Jenis Dokumen'].value_counts().to_dict()
+        total_docs = len(df)
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Documents", total_docs)
+        with col2:
+            st.metric("SKTT", doc_counts.get("SKTT", 0))
+        with col3:
+            st.metric("ITAS", doc_counts.get("ITAS", 0))
+        with col4:
+            st.metric("EVLN", doc_counts.get("EVLN", 0))
+
+        st.markdown("### 📋 Recent Documents")
+        st.dataframe(df.sort_values(by="Tanggal Penerbitan", ascending=False), use_container_width=True)
+
+    except Exception as e:
+        st.error(f"❌ Gagal memuat data dokumen: {str(e)}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    
 def render_client_page():
     """Render client management page"""
     st.markdown('''

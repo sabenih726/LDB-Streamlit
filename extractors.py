@@ -14,10 +14,11 @@ def extract_sktt(text):
     address = re.search(r'Alamat/Address\s*:\s*([\w\s,./-]+)', text)
     kitab_kitas = re.search(r'Nomor KITAP/KITAS Number\s*:\s*([\w-]+)', text)
     expiry_date = re.search(r'Berlaku Hingga s.d/Expired date\s*:\s*([\d-]+)', text)
-    
-    # Regex fleksibel: cari pola "KAPANPUN, DD-MM-YYYY"
-    date_issue = re.search(r'([A-Z\s]+),\s*(\d{2}-\d{2}-\d{4})', text)
 
+    # Flexible "Date Issue" regex
+    date_issue = re.search(r'[A-Z\s]+,\s*(\d{2}-\d{2}-\d{4})', text)
+
+    # Extract place and date of birth
     birth_place, birth_date = split_birth_place_date(birth_place_date.group(1)) if birth_place_date else (None, None)
 
     return {
@@ -25,13 +26,13 @@ def extract_sktt(text):
         "Name": clean_text(name.group(1), is_name_or_pob=True) if name else None,
         "Jenis Kelamin": gender.group(1) if gender else None,
         "Place of Birth": clean_text(birth_place, is_name_or_pob=True) if birth_place else None,
-        "Date of Birth": birth_date,
+        "Date of Birth": format_date(birth_date) if birth_date else None,
         "Nationality": clean_text(nationality.group(1)) if nationality else None,
         "Occupation": clean_text(occupation.group(1)) if occupation else None,
         "Address": clean_text(address.group(1)) if address else None,
         "KITAS/KITAP": clean_text(kitab_kitas.group(1)) if kitab_kitas else None,
         "Passport Expiry": format_date(expiry_date.group(1)) if expiry_date else None,
-        "Date Issue": format_date(date_issue.group(2)) if date_issue else None,
+        "Date Issue": format_date(date_issue.group(1)) if date_issue else None,
         "Jenis Dokumen": "SKTT"
     }
 

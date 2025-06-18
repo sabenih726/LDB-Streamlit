@@ -1,5 +1,6 @@
 import streamlit as st
 import shutil
+import time
 from datetime import datetime
 from pathlib import Path
 from auth import logout
@@ -371,35 +372,33 @@ def render_header():
     ''', unsafe_allow_html=True)
 
 def render_upload_section():
-    """Render improved upload section with better UX"""
+    """Render upload section with working CLEAR ALL button"""
     st.markdown('<div class="container">', unsafe_allow_html=True)
     st.markdown('<h2>Document Upload</h2>', unsafe_allow_html=True)
 
-    # Layout: Upload dan Pengaturan
+    # Key uploader dinamis agar bisa di-reset
+    if "uploader_key" not in st.session_state:
+        st.session_state["uploader_key"] = "uploader_1"
+
     col1, col2 = st.columns(2)
 
     with col1:
-        # Area upload file
         st.markdown('<div class="uploadfile">', unsafe_allow_html=True)
 
-        uploaded_files = st.file_uploader("Upload File PDF", type=["pdf"], accept_multiple_files=True)
-
-        # Inisialisasi dan simpan ke session_state
-        if 'uploaded_files' not in st.session_state:
-            st.session_state['uploaded_files'] = []
+        uploaded_files = st.file_uploader(
+            "Upload File PDF", 
+            type=["pdf"], 
+            accept_multiple_files=True,
+            key=st.session_state["uploader_key"]
+        )
 
         if uploaded_files:
-            st.session_state['uploaded_files'] = uploaded_files
-
-        if not st.session_state['uploaded_files']:
-            st.markdown('<p style="color: #64748b; margin-top: 10px;">Drag the PDF file here or click to select</p>', unsafe_allow_html=True)
+            st.session_state["uploaded_files"] = uploaded_files
 
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        # Opsi pengaturan dokumen
         st.markdown('<div class="card">', unsafe_allow_html=True)
-
         doc_type = st.selectbox(
             "Select Document Type",
             ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"]
@@ -410,41 +409,42 @@ def render_upload_section():
         use_passport = st.checkbox("Use Passport Number to Rename Files", value=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Badge dokumen
-        if doc_type:
-            badge_color = {
-                "SKTT": "#0284c7",
-                "EVLN": "#7c3aed",
-                "ITAS": "#16a34a",
-                "ITK": "#ca8a04",
-                "Notifikasi": "#e11d48",
-                "DKPTKA": "#dc2626"
-            }.get(doc_type, "#64748b")
+        badge_color = {
+            "SKTT": "#0284c7",
+            "EVLN": "#7c3aed",
+            "ITAS": "#16a34a",
+            "ITK": "#ca8a04",
+            "Notifikasi": "#e11d48",
+            "DKPTKA": "#dc2626"
+        }.get(doc_type, "#64748b")
 
-            st.markdown(f'''
-            <div style="margin-top: 1rem;">
-                <span style="background-color: {badge_color}; color: white; padding: 0.3rem 0.6rem; 
-                border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600;">
-                    {doc_type}
-                </span>
-                <span style="font-size: 0.85rem; margin-left: 0.5rem; color: #64748b;">Selected</span>
-            </div>
-            ''', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div style="margin-top: 1rem;">
+            <span style="background-color: {badge_color}; color: white; padding: 0.3rem 0.6rem; 
+            border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600;">
+                {doc_type}
+            </span>
+            <span style="font-size: 0.85rem; margin-left: 0.5rem; color: #64748b;">Selected</span>
+        </div>
+        ''', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Tombol Clear All jika ada file
-    if st.session_state['uploaded_files']:
-        col_clear = st.columns([1, 1, 1])[1]  # tengah
+    # Tombol Clear All yang benar-benar mereset komponen file_uploader
+    if st.session_state.get("uploaded_files"):
+        col_clear = st.columns([1, 1, 1])[1]
         with col_clear:
-            if st.button("🗑️ Clear All Files", key="clear_all_files"):
-                st.session_state['uploaded_files'] = []
-                st.rerun()  # ← gunakan ini, bukan experimental_rerun
+            if st.button("🗑️ CLEAR ALL FILES", key="clear_button"):
+                # Hapus file dari session
+                del st.session_state["uploaded_files"]
+                # Ganti key uploader agar komponen reset
+                st.session_state["uploader_key"] = f"uploader_{str(int(time.time()))}"
+                st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    return st.session_state['uploaded_files'], doc_type, use_name, use_passport
-
+    return st.session_state.get("uploaded_files", []), doc_type, use_name, use_passport
+    
 def render_file_info_panel(uploaded_files):
     """Render file information panel"""
     if uploaded_files:

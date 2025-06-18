@@ -15,10 +15,10 @@ def extract_sktt(text):
     kitab_kitas = re.search(r'Nomor KITAP/KITAS Number\s*:\s*([\w-]+)', text)
     expiry_date = re.search(r'Berlaku Hingga s.d/Expired date\s*:\s*([\d-]+)', text)
 
-    # Flexible "Date Issue" regex
-    date_issue = re.search(r'[A-Z\s]+,\s*(\d{2}-\d{2}-\d{4})', text)
+    # Ambil baris terakhir untuk cari kota + tanggal
+    lower_text = "\n".join(text.strip().splitlines()[-20:])
+    date_issue = re.search(r'([A-Z\s]{3,}),\s*(\d{2}-\d{2}-\d{4})', lower_text)
 
-    # Extract place and date of birth
     birth_place, birth_date = split_birth_place_date(birth_place_date.group(1)) if birth_place_date else (None, None)
 
     return {
@@ -32,7 +32,7 @@ def extract_sktt(text):
         "Address": clean_text(address.group(1)) if address else None,
         "KITAS/KITAP": clean_text(kitab_kitas.group(1)) if kitab_kitas else None,
         "Passport Expiry": format_date(expiry_date.group(1)) if expiry_date else None,
-        "Date Issue": format_date(date_issue.group(1)) if date_issue else None,
+        "Date Issue": format_date(date_issue.group(2)) if date_issue else None,
         "Jenis Dokumen": "SKTT"
     }
 

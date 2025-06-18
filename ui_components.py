@@ -1,5 +1,6 @@
 import streamlit as st
 import shutil
+import pandas as pd
 from datetime import datetime
 from pathlib import Path
 from auth import logout
@@ -154,6 +155,38 @@ def render_css_styles():
         transform: translateY(-2px);
     }
     
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .file-item:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    
+    .clear-button {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .clear-button:hover {
+        background-color: #dc2626;
+    }
+    
     @keyframes progress {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(100%); }
@@ -167,6 +200,10 @@ def initialize_session_state():
         st.session_state.current_page = 'Home'
     if 'show_settings' not in st.session_state:
         st.session_state.show_settings = False
+    if 'uploaded_files' not in st.session_state:
+        st.session_state.uploaded_files = []
+    if 'extraction_results' not in st.session_state:
+        st.session_state.extraction_results = []
 
 def render_main_menu():
     """Render functional main menu with navigation"""
@@ -215,6 +252,15 @@ def render_sidebar():
         
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
         
+        # Clear upload section in sidebar
+        if st.session_state.get('uploaded_files'):
+            st.markdown("### 🗑️ Quick Actions")
+            if st.button("Clear All Uploads", 
+                        type="secondary", 
+                        use_container_width=True,
+                        help="Hapus semua file yang diupload"):
+                clear_all_uploaded_files()
+        
         # Logout button
         if st.button("Logout", type="secondary", use_container_width=True):
             logout()
@@ -222,13 +268,105 @@ def render_sidebar():
         
         st.caption("© 2025 PT Laman Davindo Bahman")
 
+def clear_all_uploaded_files():
+    """Hapus semua file yang diupload"""
+    try:
+        # Hapus dari session state
+        if 'uploaded_files' in st.session_state:
+            del st.session_state['uploaded_files']
+        
+        # Hapus hasil ekstraksi jika ada
+        if 'extraction_results' in st.session_state:
+            del st.session_state['extraction_results']
+        
+        # Hapus file sementara
+        if 'temp_files' in st.session_state:
+            del st.session_state['temp_files']
+        
+        # Clear file uploader dengan menggunakan key yang sama
+        st.session_state['file_uploader'] = []
+        
+        st.success("✅ Semua file berhasil dihapus!")
+        st.rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Error menghapus file: {e}")
+
+def remove_single_file(index):
+    """Hapus file individual berdasarkan index"""
+    try:
+        if 'uploaded_files' in st.session_state:
+            files_list = list(st.session_state['uploaded_files'])
+            
+            if 0 <= index < len(files_list):
+                removed_file = files_list.pop(index)
+                st.session_state['uploaded_files'] = files_list
+                
+                # Jika tidak ada file lagi, hapus dari session state
+                if not files_list:
+                    del st.session_state['uploaded_files']
+                    st.session_state['file_uploader'] = []
+                
+                st.success(f"✅ File '{removed_file.name}' berhasil dihapus!")
+                st.rerun()
+            
+    except Exception as e:
+        st.error(f"❌ Error menghapus file: {e}")
+
+def process_uploaded_files():
+    """Proses file yang sudah diupload"""
+    if not st.session_state.get('uploaded_files'):
+        st.error("Tidak ada file untuk diproses!")
+        return
+    
+    # Progress bar
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    
+    try:
+        results = []
+        total_files = len(st.session_state['uploaded_files'])
+        
+        for i, file in enumerate(st.session_state['uploaded_files']):
+            # Update progress
+            progress = (i + 1) / total_files
+            progress_bar.progress(progress)
+            status_text.text(f"Memproses {file.name}... ({i+1}/{total_files})")
+            
+            # Proses ekstraksi (sesuaikan dengan logic existing)
+            # result = extract_document_data(file)  # Fungsi existing Anda
+            # Untuk demo, kita gunakan placeholder
+            result = {
+                'filename': file.name,
+                'status': 'processed',
+                'timestamp': datetime.now()
+            }
+            results.append(result)
+        
+        # Simpan hasil
+        st.session_state['extraction_results'] = results
+        
+        # Clear progress
+        progress_bar.empty()
+        status_text.empty()
+        
+        st.success(f"✅ Berhasil memproses {total_files} file!")
+        
+    except Exception as e:
+        st.error(f"❌ Error memproses file: {e}")
+        progress_bar.empty()
+        status_text.empty()
+
 def render_home_content():
-    """Render home page content"""
+    """Render home page content with enhanced upload section"""
     render_header()
-    uploaded_files, doc_type, use_name, use_passport = render_upload_section()
-    render_file_info_panel(uploaded_files)
+    uploaded_files, doc_type, use_name, use_passport = render_enhanced_upload_section()
     
     if uploaded_files:
+        # Simpan ke session state
+        st.session_state['uploaded_files'] = uploaded_files
+        
+        render_file_info_panel_enhanced(uploaded_files)
         process_button = render_process_button(uploaded_files)
         
         if process_button:
@@ -244,6 +382,103 @@ def render_home_content():
         render_help_info()
     
     render_help_expander()
+
+def render_enhanced_upload_section():
+    """Render enhanced upload section with clear functionality"""
+    st.markdown('<div class="container">', unsafe_allow_html=True)
+    st.markdown('<h2>📁 Document Upload</h2>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # File upload area
+        st.markdown('<div class="uploadfile">', unsafe_allow_html=True)
+        uploaded_files = st.file_uploader(
+            "Upload File PDF", 
+            type=["pdf"], 
+            accept_multiple_files=True,
+            key="file_uploader"
+        )
+        if not uploaded_files:
+            st.markdown('<p style="color: #64748b; margin-top: 10px;">Drag the PDF file here or click to select</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Show uploaded files with individual delete buttons
+        if uploaded_files:
+            st.markdown("### 📋 Uploaded Files")
+            
+            # Header with total count and clear all button
+            col_header1, col_header2 = st.columns([2, 1])
+            with col_header1:
+                st.write(f"**Total: {len(uploaded_files)} file(s)**")
+            with col_header2:
+                if st.button("🗑️ Clear All", 
+                            type="secondary", 
+                            use_container_width=True,
+                            help="Hapus semua file yang diupload"):
+                    clear_all_uploaded_files()
+            
+            # List individual files
+            for i, file in enumerate(uploaded_files):
+                col_file1, col_file2, col_file3 = st.columns([3, 1, 1])
+                
+                with col_file1:
+                    st.write(f"{i+1}. {file.name}")
+                
+                with col_file2:
+                    # File size
+                    file_size = len(file.getvalue()) / 1024  # KB
+                    if file_size > 1024:
+                        st.caption(f"{file_size/1024:.1f} MB")
+                    else:
+                        st.caption(f"{file_size:.1f} KB")
+                
+                with col_file3:
+                    # Individual remove button
+                    if st.button("❌", 
+                               key=f"remove_{i}", 
+                               help=f"Hapus {file.name}"):
+                        remove_single_file(i)
+
+    with col2:
+        # Document type selection
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        doc_type = st.selectbox(
+            "Select Document Type",
+            ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"]
+        )
+        
+        st.markdown('<div style="margin-top: 1rem;">', unsafe_allow_html=True)
+        use_name = st.checkbox("Use Name to Rename Files", value=True)
+        use_passport = st.checkbox("Use Passport Number to Rename Files", value=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Document type badge
+        if doc_type:
+            badge_color = {
+                "SKTT": "#0284c7",
+                "EVLN": "#7c3aed",
+                "ITAS": "#16a34a",
+                "ITK": "#ca8a04",
+                "Notifikasi": "#e11d48",
+                "DKPTKA": "#dc2626"
+            }.get(doc_type, "#64748b")
+            
+            st.markdown(f'''
+            <div style="margin-top: 1rem;">
+                <span style="background-color: {badge_color}; color: white; padding: 0.3rem 0.6rem; 
+                border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600;">
+                    {doc_type}
+                </span>
+                <span style="font-size: 0.85rem; margin-left: 0.5rem; color: #64748b;">Selected</span>
+            </div>
+            ''', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    return uploaded_files, doc_type, use_name, use_passport
 
 def render_document_page():
     """Render document management page using data from CSV"""
@@ -371,7 +606,7 @@ def render_header():
     ''', unsafe_allow_html=True)
 
 def render_upload_section():
-    """Render improved upload section with better UX"""
+    """Render improved upload section with better UX (legacy function)"""
     st.markdown('<div class="container">', unsafe_allow_html=True)
     st.markdown('<h2>Document Upload</h2>', unsafe_allow_html=True)
 
@@ -426,7 +661,7 @@ def render_upload_section():
     return uploaded_files, doc_type, use_name, use_passport
 
 def render_file_info_panel(uploaded_files):
-    """Render file information panel"""
+    """Render file information panel (legacy function)"""
     if uploaded_files:
         st.markdown('<div class="container">', unsafe_allow_html=True)
         st.markdown('<h3>Uploaded Files</h3>', unsafe_allow_html=True)

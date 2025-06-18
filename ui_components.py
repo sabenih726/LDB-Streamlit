@@ -439,7 +439,7 @@ def render_upload_section():
         with col_clear:
             if st.button("🗑️ Clear All Files", key="clear_all_files"):
                 st.session_state['uploaded_files'] = []
-                st.experimental_rerun()
+                st.rerun()  # ← gunakan ini, bukan experimental_rerun
 
     st.markdown('</div>', unsafe_allow_html=True)
 

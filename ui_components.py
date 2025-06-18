@@ -375,30 +375,42 @@ def render_upload_section():
     st.markdown('<div class="container">', unsafe_allow_html=True)
     st.markdown('<h2>Document Upload</h2>', unsafe_allow_html=True)
 
+    # Layout: Upload dan Pengaturan
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        # File upload area
+        # Area upload file
         st.markdown('<div class="uploadfile">', unsafe_allow_html=True)
+
         uploaded_files = st.file_uploader("Upload File PDF", type=["pdf"], accept_multiple_files=True)
-        if not uploaded_files:
+
+        # Inisialisasi dan simpan ke session_state
+        if 'uploaded_files' not in st.session_state:
+            st.session_state['uploaded_files'] = []
+
+        if uploaded_files:
+            st.session_state['uploaded_files'] = uploaded_files
+
+        if not st.session_state['uploaded_files']:
             st.markdown('<p style="color: #64748b; margin-top: 10px;">Drag the PDF file here or click to select</p>', unsafe_allow_html=True)
+
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        # Document type selection
+        # Opsi pengaturan dokumen
         st.markdown('<div class="card">', unsafe_allow_html=True)
+
         doc_type = st.selectbox(
             "Select Document Type",
             ["SKTT", "EVLN", "ITAS", "ITK", "Notifikasi", "DKPTKA"]
         )
-        
+
         st.markdown('<div style="margin-top: 1rem;">', unsafe_allow_html=True)
         use_name = st.checkbox("Use Name to Rename Files", value=True)
         use_passport = st.checkbox("Use Passport Number to Rename Files", value=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Document type badge
+
+        # Badge dokumen
         if doc_type:
             badge_color = {
                 "SKTT": "#0284c7",
@@ -408,7 +420,7 @@ def render_upload_section():
                 "Notifikasi": "#e11d48",
                 "DKPTKA": "#dc2626"
             }.get(doc_type, "#64748b")
-            
+
             st.markdown(f'''
             <div style="margin-top: 1rem;">
                 <span style="background-color: {badge_color}; color: white; padding: 0.3rem 0.6rem; 
@@ -418,12 +430,20 @@ def render_upload_section():
                 <span style="font-size: 0.85rem; margin-left: 0.5rem; color: #64748b;">Selected</span>
             </div>
             ''', unsafe_allow_html=True)
-        
+
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # Tombol Clear All jika ada file
+    if st.session_state['uploaded_files']:
+        col_clear = st.columns([1, 1, 1])[1]  # tengah
+        with col_clear:
+            if st.button("🗑️ Clear All Files", key="clear_all_files"):
+                st.session_state['uploaded_files'] = []
+                st.experimental_rerun()
+
     st.markdown('</div>', unsafe_allow_html=True)
-    
-    return uploaded_files, doc_type, use_name, use_passport
+
+    return st.session_state['uploaded_files'], doc_type, use_name, use_passport
 
 def render_file_info_panel(uploaded_files):
     """Render file information panel"""

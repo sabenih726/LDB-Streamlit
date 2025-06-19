@@ -6,140 +6,271 @@ from pathlib import Path
 from auth import logout
 from helpers import get_greeting
 
-def render_dark_login_css():
-    """Render dark mode CSS for login page"""
+def render_enhanced_login_css():
+    """Render enhanced modern CSS for login page"""
     st.markdown('''
     <style>
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
     /* Hide Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     header {visibility: hidden;}
     
-    /* Hide the problematic containers */
-    .stApp > div:first-child {
+    /* Remove all borders */
+    .stApp > div:first-child,
+    div:empty {
         display: none !important;
     }
     
-    /* Hide notification/status containers */
-    div[data-testid="stNotificationContentError"],
-    div[data-testid="stNotificationContentInfo"],
-    div[data-testid="stNotificationContentSuccess"],
-    div[data-testid="stStatusWidget"],
-    .stAlert-container,
-    .stToast,
-    .element-container:empty {
-        display: none !important;
-    }
-    
-    /* Hide any empty containers with borders */
-    div:empty,
-    .stApp > div:empty,
-    .main > div:empty {
-        display: none !important;
-    }
-    
-    /* Force remove borders from all potential containers */
-    .stApp > div,
-    .stApp > div > div,
-    .main > div,
-    .block-container > div,
-    section[data-testid="stSidebar"] + div,
-    div[data-testid="stVerticalBlock"]:first-child {
+    * {
         border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
         outline: none !important;
     }
     
-    /* Override ALL Streamlit containers */
-    .stApp, .stApp > div, .main, .block-container, 
-    div[data-testid="stVerticalBlock"], 
-    div[data-testid="column"] {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
+    /* Animated background */
     .stApp {
-        color: #f8fafc;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
         min-height: 100vh;
-        padding: 2rem 0 !important;
+        color: #f8fafc;
+        position: relative;
+        overflow: hidden;
     }
     
-    /* Login card container */
+    /* Animated background gradient */
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Floating particles background */
+    .stApp::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        33% { transform: translateY(-30px) rotate(2deg); }
+        66% { transform: translateY(-20px) rotate(-2deg); }
+    }
+    
+    /* Login card with glassmorphism */
     .login-card {
-        background: rgba(30, 41, 59, 0.8);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(71, 85, 105, 0.3);
-        border-radius: 16px;
-        padding: 2.5rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        position: relative;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        box-shadow: 
+            0 25px 50px -12px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         margin: 2rem auto;
-        max-width: 400px;
+        max-width: 420px;
+        transform: translateY(20px);
+        animation: slideUp 0.8s ease-out forwards;
+        overflow: hidden;
     }
     
-    /* Header styling */
-    .login-header h1 {
-        color: #f8fafc !important;
-        font-size: 1.8rem !important;
-        font-weight: 700 !important;
-        margin: 0 0 0.5rem 0 !important;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    /* Card slide up animation */
+    @keyframes slideUp {
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Subtle glow effect */
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    /* Header with enhanced typography */
+    .login-header {
         text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+    
+    .login-header h1 {
+        color: #ffffff !important;
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        margin: 0 0 0.75rem 0 !important;
+        background: linear-gradient(135deg, #ffffff, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: none;
+        letter-spacing: -0.025em;
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.3)); }
+        to { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5)); }
     }
     
     .login-header p {
         color: #94a3b8 !important;
         font-size: 1rem !important;
-        margin: 0 0 1.5rem 0 !important;
-        text-align: center;
+        font-weight: 400 !important;
+        margin: 0 !important;
+        opacity: 0.9;
     }
     
-    /* Divider */
+    /* Enhanced divider */
     hr {
         border: none !important;
         height: 1px !important;
         background: linear-gradient(90deg, transparent, #475569, transparent) !important;
-        margin: 1.5rem 0 2rem 0 !important;
+        margin: 2rem 0 2.5rem 0 !important;
+        position: relative;
     }
     
-    /* Input styling */
+    hr::after {
+        content: '✦';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(30, 41, 59, 0.9);
+        color: #64748b;
+        padding: 0 1rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Enhanced input fields */
     .stTextInput > div > div > input {
-        background-color: rgba(51, 65, 85, 0.6) !important;
-        border: 1px solid rgba(71, 85, 105, 0.4) !important;
-        border-radius: 8px !important;
+        background: rgba(51, 65, 85, 0.5) !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        border-radius: 12px !important;
         color: #f8fafc !important;
-        padding: 0.75rem 1rem !important;
+        padding: 1rem 1.25rem !important;
+        font-size: 0.95rem !important;
+        font-family: 'Inter', sans-serif !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        backdrop-filter: blur(10px);
     }
     
     .stTextInput > div > div > input:focus {
         border-color: #3b82f6 !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        background: rgba(51, 65, 85, 0.8) !important;
+        box-shadow: 
+            0 0 0 3px rgba(59, 130, 246, 0.2) !important,
+            0 4px 20px rgba(59, 130, 246, 0.1) !important;
+        transform: translateY(-2px) !important;
     }
     
+    .stTextInput > div > div > input::placeholder {
+        color: #94a3b8 !important;
+        opacity: 0.7;
+    }
+    
+    /* Enhanced labels */
     .stTextInput > label {
         color: #e2e8f0 !important;
         font-weight: 500 !important;
+        font-size: 0.875rem !important;
+        margin-bottom: 0.5rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.9;
     }
     
-    /* Button styling */
+    /* Enhanced button with multiple states */
     .stButton > button {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af) !important;
         color: white !important;
         border: none !important;
-        border-radius: 8px !important;
-        padding: 0.75rem 2rem !important;
+        border-radius: 12px !important;
+        padding: 1rem 2rem !important;
         font-weight: 600 !important;
+        font-size: 0.95rem !important;
         width: 100% !important;
-        margin-top: 1rem !important;
+        margin-top: 1.5rem !important;
+        font-family: 'Inter', sans-serif !important;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 
+            0 4px 15px rgba(59, 130, 246, 0.4),
+            0 0 0 1px rgba(59, 130, 246, 0.2);
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
-        transform: translateY(-2px) !important;
+        background: linear-gradient(135deg, #1d4ed8, #1e40af, #1e3a8a) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 
+            0 8px 25px rgba(59, 130, 246, 0.5),
+            0 0 0 1px rgba(59, 130, 246, 0.3) !important;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px) !important;
+    }
+    
+    /* Enhanced error messages */
+    .stAlert {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        border-radius: 12px !important;
+        color: #fca5a5 !important;
+        padding: 1rem !important;
+        margin: 1rem 0 !important;
+        backdrop-filter: blur(10px);
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
     }
     
     /* Form styling */
@@ -148,19 +279,48 @@ def render_dark_login_css():
         border: none !important;
     }
     
-    /* Error styling */
-    .stAlert {
-        background-color: rgba(239, 68, 68, 0.15) !important;
-        border: 1px solid rgba(239, 68, 68, 0.3) !important;
-        color: #fca5a5 !important;
-        border-radius: 8px !important;
+    /* Loading state (optional) */
+    .loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 480px) {
+        .login-card {
+            margin: 1rem;
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+        }
+        
+        .login-header h1 {
+            font-size: 1.5rem !important;
+        }
+    }
+    
+    /* Dark scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(30, 41, 59, 0.3);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.5);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(59, 130, 246, 0.7);
     }
     </style>
     ''', unsafe_allow_html=True)
 
 def login_page():
-    # Apply CSS first
-    render_dark_login_css()
+    # Apply enhanced CSS
+    render_enhanced_login_css()
     
     # Center the login form
     col1, col2, col3 = st.columns([1, 1, 1])

@@ -29,61 +29,16 @@ def render_css_styles():
     """Render custom CSS styles for the application"""
     st.markdown('''
     <style>
-    /* Hide Streamlit default elements */
-    .stApp > header {
-        background-color: transparent;
-    }
-    
-    .stApp {
-        margin-top: -80px;
-    }
-    
-    /* Hide main menu, footer, and header */
-    MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Hide the shape/border elements */
-    .stDeployButton {display: none;}
-    .stDecoration {display: none;}
-    
-    /* Hide hamburger menu */
-    button[title="View fullscreen"] {
-        visibility: hidden;
-    }
-    
-    /* Hide settings menu */
-    button[kind="header"] {
-        display: none;
-    }
-    
-    /* Hide shapes and decorative elements */
-    .stApp > div[data-testid="stDecoration"] {
-        display: none;
-    }
-    
-    .stApp [data-testid="stDecoration"] {
-        display: none;
-    }
-    
-    /* Hide top padding/margin that creates space */
-    .block-container {
-        padding-top: 1rem;
-        padding-bottom: 0rem;
-    }
-    
-    /* Remove default Streamlit styling */
-    .stApp > div:first-child {
-        display: none;
-    }
-    
     body {
-        background-color: #f8fafc;
+        background-color: 
+#f8fafc;
         font-family: 'Segoe UI', sans-serif;
     }
-    
+
     .sidebar-header {
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        background: linear-gradient(135deg, 
+#1d4ed8, 
+#2563eb);
         color: white;
         padding: 1rem;
         border-radius: 0.5rem;
@@ -92,7 +47,7 @@ def render_css_styles():
         font-weight: 600;
         font-size: 1.1rem;
     }
-    
+
     .menu-item {
         display: flex;
         align-items: center;
@@ -105,33 +60,39 @@ def render_css_styles():
         border: none;
         width: 100%;
         text-align: left;
-        color: #374151;
+        color: 
+#374151;
     }
-    
+
     .menu-item:hover {
-        background-color: #f3f4f6;
-        color: #1d4ed8;
+        background-color: 
+#f3f4f6;
+        color: 
+#1d4ed8;
     }
-    
+
     .menu-item.active {
-        background-color: #1d4ed8;
+        background-color: 
+#1d4ed8;
         color: white;
     }
-    
+
     .menu-icon {
         margin-right: 0.75rem;
         font-size: 1.1rem;
     }
-    
+
     .header {
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        background: linear-gradient(135deg, 
+#1d4ed8, 
+#2563eb);
         color: white;
         padding: 2rem;
         border-radius: 0.75rem;
         margin-bottom: 2rem;
         text-align: center;
     }
-    
+
     .container {
         background-color: white;
         padding: 2rem;
@@ -139,56 +100,71 @@ def render_css_styles():
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         margin-bottom: 2rem;
     }
-    
+
     .uploadfile {
-        border: 2px dashed #cbd5e1;
+        border: 2px dashed 
+#cbd5e1;
         border-radius: 0.75rem;
         padding: 2rem;
         text-align: center;
-        background-color: #f8fafc;
+        background-color: 
+#f8fafc;
         transition: all 0.3s ease;
     }
-    
+
     .uploadfile:hover {
-        border-color: #1d4ed8;
-        background-color: #f0f9ff;
+        border-color: 
+#1d4ed8;
+        background-color: 
+#f0f9ff;
     }
-    
+
     .card {
-        background-color: #f8fafc;
+        background-color: 
+#f8fafc;
         padding: 1.5rem;
         border-radius: 0.75rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid 
+#e2e8f0;
     }
-    
+
     .alert-warning {
-        background-color: #fef3c7;
-        border: 1px solid #f59e0b;
-        color: #92400e;
+        background-color: 
+#fef3c7;
+        border: 1px solid 
+#f59e0b;
+        color: 
+#92400e;
         padding: 0.75rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
         text-align: center;
         font-weight: 600;
     }
-    
+
     .alert-info {
-        background-color: #dbeafe;
-        border: 1px solid #3b82f6;
-        color: #1e40af;
+        background-color: 
+#dbeafe;
+        border: 1px solid 
+#3b82f6;
+        color: 
+#1e40af;
         padding: 1.5rem;
         border-radius: 0.75rem;
         margin: 2rem 0;
     }
-    
+
     .divider {
         height: 1px;
-        background-color: #e2e8f0;
+        background-color: 
+#e2e8f0;
         margin: 1rem 0;
     }
-    
+
     .modern-button {
-        background: linear-gradient(to right, #1d4ed8, #2563eb);
+        background: linear-gradient(to right, 
+#1d4ed8, 
+#2563eb);
         color: white;
         padding: 0.75rem 1.5rem;
         font-weight: 600;
@@ -197,12 +173,14 @@ def render_css_styles():
         transition: all 0.3s ease;
         cursor: pointer;
     }
-    
+
     .modern-button:hover {
-        background: linear-gradient(to right, #2563eb, #1e40af);
+        background: linear-gradient(to right, 
+#2563eb, 
+#1e40af);
         transform: translateY(-2px);
     }
-    
+
     @keyframes progress {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(100%); }

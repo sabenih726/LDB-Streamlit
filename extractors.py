@@ -46,6 +46,8 @@ def extract_sktt(text):
     }
 
 # ========================= Ekstraksi EVLN =========================
+import re
+
 def extract_evln(text):
     data = {
         "Name": "",
@@ -53,12 +55,12 @@ def extract_evln(text):
         "Date of Birth": "",
         "Passport No": "",
         "Passport Expiry": "",
-        "Date Issue": "",  # Kolom baru yang ditambahkan
+        "Date Issue": "",
         "Jenis Dokumen": "EVLN"
     }
-
+    
     lines = text.split("\n")
-
+    
     # Cari nama berdasarkan sapaan seperti Dear Mr./Ms.
     for i, line in enumerate(lines):
         if re.search(r"Dear\s+(Mr\.|Ms\.|Sir|Madam)?", line, re.IGNORECASE):
@@ -70,36 +72,110 @@ def extract_evln(text):
                     else:
                         data["Name"] = re.sub(r'[^A-Z ]', '', name_candidate.upper())
             break
-
-    # Parsing baris lain
+    
+    # Parsing baris lain dengan perbaikan
     for line in lines:
-        if not data["Name"] and re.search(r"(?i)\bName\b|\bNama\b", line):
-            parts = line.split(":")
+        line_clean = line.strip()
+        
+        # Ekstraksi Nama
+        if not data["Name"] and re.search(r"(?i)\bName\b|\bNama\b", line_clean):
+            parts = line_clean.split(":")
             if len(parts) > 1:
-                data["Name"] = clean_text(parts[1], is_name_or_pob=True)
-        elif re.search(r"(?i)\bPlace of Birth\b|\bTempat Lahir\b", line):
-            parts = line.split(":")
-            if len(parts) > 1:
-                data["Place of Birth"] = clean_text(parts[1], is_name_or_pob=True)
-        elif re.search(r"(?i)\bDate of Birth\b|\bTanggal Lahir\b", line):
-            match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)
-            if match:
-                data["Date of Birth"] = format_date(match.group(1))
-        elif re.search(r"(?i)\bPassport No\b", line):
-            match = re.search(r"\b([A-Z0-9]+)\b", line)
-            if match:
-                data["Passport No"] = match.group(1)
-        elif re.search(r"(?i)\bPassport Expiry\b", line):
-            match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)
-            if match:
-                data["Passport Expiry"] = format_date(match.group(1))
-        elif re.search(r"(?i)\bDate of issue\b|\bTanggal Penerbitan\b", line):  # Diperbaiki untuk mencocokkan format dokumen
-            match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)
-            if match:
-                data["Date Issue"] = format_date(match.group(1))
-
+                name_candidate = parts[1].strip()
+                if 'clean_text' in globals():
+                    data["Name"] = clean_text(name_candidate, is_name_or_pob=True)
+                else:
+                    data["Name"] = re.sub(r'[^A-Z ]', '', name_candidate.upper())
+        
+        # Ekstraksi Place of Birth - diperbaiki untuk menangani format yang lebih fleksibel
+        elif re.search(r"(?i)\bPlace of Birth\b|\bTempat Lahir\b|\bPOB\b", line_clean):
+            # Cari setelah tanda titik dua
+            if ":" in line_clean:
+                pob_candidate = line_clean.split(":", 1)[1].strip()
+            else:
+                # Jika tidak ada titik dua, cari pola lokasi
+                pob_match = re.search(r"(?i)(?:Place of Birth|POB|Tempat Lahir)\s*[:\-]?\s*([A-Z][A-Z\s]+)", line_clean)
+                if pob_match:
+                    pob_candidate = pob_match.group(1)
+                else:
+                    continue
+            
+            # Bersihkan dan validasi POB
+            if pob_candidate:
+                if 'clean_text' in globals():
+                    data["Place of Birth"] = clean_text(pob_candidate, is_name_or_pob=True)
+                else:
+                    # Hapus karakter non-alfabet kecuali spasi, dan kapitalisasi
+                    data["Place of Birth"] = re.sub(r'[^A-Za-z ]', '', pob_candidate).upper().strip()
+        
+        # Ekstraksi Date of Birth
+        elif re.search(r"(?i)\bDate of Birth\b|\bTanggal Lahir\b|\bDOB\b", line_clean):
+            # Cari pola tanggal dalam berbagai format
+            date_match = re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{4})", line_clean)
+            if date_match:
+                if 'format_date' in globals():
+                    data["Date of Birth"] = format_date(date_match.group(1))
+                else:
+                    data["Date of Birth"] = date_match.group(1)
+        
+        # Ekstraksi Passport No - diperbaiki untuk menangani format yang lebih akurat
+        elif re.search(r"(?i)\bPassport No\b|\bPaspor No\b|\bPassport Number\b", line_clean):
+            # Cari nomor paspor setelah label
+            if ":" in line_clean:
+                passport_part = line_clean.split(":", 1)[1].strip()
+            else:
+                passport_part = line_clean
+            
+            # Cari pola nomor paspor (biasanya kombinasi huruf dan angka)
+            passport_match = re.search(r"\b([A-Z]{1,2}\d{6,8}|\d{8,9}|[A-Z]\d{7,8})\b", passport_part)
+            if passport_match:
+                data["Passport No"] = passport_match.group(1)
+        
+        # Ekstraksi Passport Expiry - diperbaiki untuk menangani berbagai format
+        elif re.search(r"(?i)\bPassport Expiry\b|\bExpiry\b|\bExp\b|\bKadaluarsa\b", line_clean):
+            # Cari pola tanggal
+            date_match = re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{4})", line_clean)
+            if date_match:
+                if 'format_date' in globals():
+                    data["Passport Expiry"] = format_date(date_match.group(1))
+                else:
+                    data["Passport Expiry"] = date_match.group(1)
+        
+        # Ekstraksi Date Issue - diperbaiki dengan pola yang lebih fleksibel
+        elif re.search(r"(?i)\b(?:Date of )?Issue\b|\b(?:Date )?Issued\b|\bTanggal Penerbitan\b|\bIssue Date\b", line_clean):
+            # Cari pola tanggal
+            date_match = re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{4})", line_clean)
+            if date_match:
+                if 'format_date' in globals():
+                    data["Date Issue"] = format_date(date_match.group(1))
+                else:
+                    data["Date Issue"] = date_match.group(1)
+    
+    # Post-processing untuk memastikan data yang diekstrak valid
+    # Bersihkan nama jika masih kosong atau tidak valid
+    if not data["Name"] or len(data["Name"]) < 3:
+        # Cari nama di baris yang mengandung kata kunci lain
+        for line in lines:
+            # Cari pola nama di awal baris (biasanya nama ditulis di awal)
+            name_match = re.search(r"^([A-Z][A-Z\s]{10,40})", line.strip())
+            if name_match and not re.search(r"(?i)\b(?:passport|visa|issue|expiry|birth|place)\b", name_match.group(1)):
+                data["Name"] = name_match.group(1).strip()
+                break
+    
+    # Bersihkan Place of Birth jika masih kosong
+    if not data["Place of Birth"]:
+        # Cari pola lokasi yang umum
+        for line in lines:
+            pob_match = re.search(r"\b([A-Z]{4,20})\b", line)
+            if pob_match and not re.search(r"(?i)\b(?:passport|visa|issue|expiry|dear|mr|ms)\b", pob_match.group(1)):
+                candidate = pob_match.group(1)
+                # Validasi apakah ini kemungkinan nama tempat
+                if len(candidate) >= 4 and candidate.isalpha():
+                    data["Place of Birth"] = candidate
+                    break
+    
     return data
-
+    
 # ========================= Ekstraksi ITAS =========================
 def extract_itas(text):
     data = {}

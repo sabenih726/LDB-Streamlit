@@ -53,6 +53,7 @@ def extract_evln(text):
         "Date of Birth": "",
         "Passport No": "",
         "Passport Expiry": "",
+        "Date Issue": "",  # Kolom baru yang ditambahkan
         "Jenis Dokumen": "EVLN"
     }
 
@@ -92,6 +93,10 @@ def extract_evln(text):
             match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)
             if match:
                 data["Passport Expiry"] = format_date(match.group(1))
+        elif re.search(r"(?i)\bDate Issue\b|\bTanggal Terbit\b", line):  # Menambahkan pencarian untuk Date Issue
+            match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)
+            if match:
+                data["Date Issue"] = format_date(match.group(1))
 
     return data
 

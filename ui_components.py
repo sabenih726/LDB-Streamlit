@@ -29,6 +29,54 @@ def render_css_styles():
     """Render custom CSS styles for the application"""
     st.markdown('''
     <style>
+    /* Hide Streamlit default elements */
+    .stApp > header {
+        background-color: transparent;
+    }
+    
+    .stApp {
+        margin-top: -80px;
+    }
+    
+    /* Hide main menu, footer, and header */
+    MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Hide the shape/border elements */
+    .stDeployButton {display: none;}
+    .stDecoration {display: none;}
+    
+    /* Hide hamburger menu */
+    button[title="View fullscreen"] {
+        visibility: hidden;
+    }
+    
+    /* Hide settings menu */
+    button[kind="header"] {
+        display: none;
+    }
+    
+    /* Hide shapes and decorative elements */
+    .stApp > div[data-testid="stDecoration"] {
+        display: none;
+    }
+    
+    .stApp [data-testid="stDecoration"] {
+        display: none;
+    }
+    
+    /* Hide top padding/margin that creates space */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+    }
+    
+    /* Remove default Streamlit styling */
+    .stApp > div:first-child {
+        display: none;
+    }
+    
     body {
         background-color: #f8fafc;
         font-family: 'Segoe UI', sans-serif;

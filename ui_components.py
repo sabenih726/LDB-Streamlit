@@ -10,69 +10,32 @@ def render_dark_login_css():
     """Render dark mode CSS for login page"""
     st.markdown('''
     <style>
-    /* Hide Streamlit branding and containers */
+    /* Hide Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     header {visibility: hidden;}
     
-    /* AGGRESSIVE: Hide all default Streamlit containers */
+    /* Hide the problematic container */
     .stApp > div:first-child {
         display: none !important;
     }
     
-    /* Dark background */
-    .stApp {
+    /* Override ALL Streamlit containers */
+    .stApp, .stApp > div, .main, .block-container, 
+    div[data-testid="stVerticalBlock"], 
+    div[data-testid="column"] {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-        color: #f8fafc;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* Remove ALL default containers and their borders */
-    .block-container {
-        padding: 0 !important;
-        margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
-        background: none !important;
-        max-width: 100% !important;
-    }
-    
-    .main {
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        background: none !important;
-    }
-    
-    .main .block-container {
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        background: none !important;
-    }
-    
-    /* Remove default element spacing */
-    .element-container {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: none !important;
-    }
-    
-    /* Override any container that might have borders */
-    div[data-testid="stVerticalBlock"] {
-        border: none !important;
-        background: none !important;
         padding: 0 !important;
         margin: 0 !important;
     }
     
-    div[data-testid="column"] {
-        border: none !important;
-        background: none !important;
-        padding: 0 !important;
+    .stApp {
+        color: #f8fafc;
+        min-height: 100vh;
+        padding: 2rem 0 !important;
     }
     
     /* Login card container */
@@ -83,40 +46,28 @@ def render_dark_login_css():
         border-radius: 16px;
         padding: 2.5rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-        margin: 2rem auto !important;
-        max-width: 100%;
-        position: relative;
-        top: 0;
+        margin: 2rem auto;
+        max-width: 400px;
     }
     
-    /* Header styling - Remove any inherited borders */
-    .login-header {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-    }
-    
+    /* Header styling */
     .login-header h1 {
         color: #f8fafc !important;
         font-size: 1.8rem !important;
         font-weight: 700 !important;
         margin: 0 0 0.5rem 0 !important;
-        padding: 0 !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        border: none !important;
-        background: none !important;
+        text-align: center;
     }
     
     .login-header p {
         color: #94a3b8 !important;
         font-size: 1rem !important;
         margin: 0 0 1.5rem 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: none !important;
+        text-align: center;
     }
     
-    /* Divider styling */
+    /* Divider */
     hr {
         border: none !important;
         height: 1px !important;
@@ -124,33 +75,23 @@ def render_dark_login_css():
         margin: 1.5rem 0 2rem 0 !important;
     }
     
-    /* Input field styling */
+    /* Input styling */
     .stTextInput > div > div > input {
         background-color: rgba(51, 65, 85, 0.6) !important;
         border: 1px solid rgba(71, 85, 105, 0.4) !important;
         border-radius: 8px !important;
         color: #f8fafc !important;
         padding: 0.75rem 1rem !important;
-        font-size: 0.95rem !important;
-        transition: all 0.3s ease !important;
     }
     
     .stTextInput > div > div > input:focus {
         border-color: #3b82f6 !important;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
-        background-color: rgba(51, 65, 85, 0.8) !important;
     }
     
-    .stTextInput > div > div > input::placeholder {
-        color: #94a3b8 !important;
-    }
-    
-    /* Label styling */
     .stTextInput > label {
         color: #e2e8f0 !important;
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
-        margin-bottom: 0.5rem !important;
     }
     
     /* Button styling */
@@ -161,124 +102,54 @@ def render_dark_login_css():
         border-radius: 8px !important;
         padding: 0.75rem 2rem !important;
         font-weight: 600 !important;
-        font-size: 0.95rem !important;
         width: 100% !important;
-        transition: all 0.3s ease !important;
         margin-top: 1rem !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2) !important;
     }
     
     .stButton > button:hover {
         background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
-    }
-    
-    .stButton > button:active {
-        transform: translateY(0px) !important;
     }
     
     /* Form styling */
     .stForm {
         background: transparent !important;
         border: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
     }
     
-    /* Error message styling */
-    .stAlert[data-baseweb="notification"] {
+    /* Error styling */
+    .stAlert {
         background-color: rgba(239, 68, 68, 0.15) !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
         color: #fca5a5 !important;
         border-radius: 8px !important;
     }
-    
-    /* Success message styling */
-    .stSuccess {
-        background-color: rgba(34, 197, 94, 0.15) !important;
-        border: 1px solid rgba(34, 197, 94, 0.3) !important;
-        color: #86efac !important;
-        border-radius: 8px !important;
-    }
-    
-    /* Override any default Streamlit container styling */
-    .stApp > div {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* Ensure columns don't have unwanted spacing */
-    .stColumn {
-        padding: 0 !important;
-    }
-    
-    /* Remove any default markdown styling that might add borders */
-    .stMarkdown {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
     </style>
     ''', unsafe_allow_html=True)
 
 def login_page():
-    # Apply dark mode CSS
+    # Apply CSS first
     render_dark_login_css()
     
-    # Create a custom container to replace default Streamlit layout
-    st.markdown('''
-    <div style="
-        width: 100vw; 
-        height: 100vh; 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 999;
-    ">
-        <div class="login-card" style="
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            border-radius: 16px;
-            padding: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-            width: 400px;
-            max-width: 90vw;
-        ">
-            <div class="login-header" style="text-align: center; margin-bottom: 2rem;">
-                <h1 style="
-                    color: #f8fafc; 
-                    font-size: 1.8rem; 
-                    font-weight: 700; 
-                    margin: 0 0 0.5rem 0; 
-                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                ">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
-                <p style="
-                    color: #94a3b8; 
-                    font-size: 1rem; 
-                    margin: 0;
-                ">Sistem Ekstraksi Dokumen Imigrasi</p>
-            </div>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
-    
-    # Hide the content above and use Streamlit form below the overlay
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Center the login form
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        # Make the form invisible but functional
-        st.markdown('<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -30%); z-index: 1000; width: 300px;">', unsafe_allow_html=True)
+        st.markdown('<div class="login-card">', unsafe_allow_html=True)
         
-        # Login form
+        # Header
+        st.markdown('''
+        <div class="login-header">
+            <h1>🖥️ PT LAMAN DAVINDO BAHMAN</h1>
+            <p>Sistem Ekstraksi Dokumen Imigrasi</p>
+        </div>
+        <hr>
+        ''', unsafe_allow_html=True)
+        
+        # Form
         with st.form("login_form"):
             st.text_input("Username", key="username", placeholder="Masukkan username Anda")
             st.text_input("Password", type="password", key="password", placeholder="Masukkan password Anda")
             
-            # Show error message if login failed
             if st.session_state.get('login_attempt', 0) > 0:
                 st.error(f"❌ Username atau password salah! (Percobaan ke-{st.session_state.login_attempt})")
             
@@ -289,6 +160,7 @@ def login_page():
                 login()
         
         st.markdown('</div>', unsafe_allow_html=True)
+        
 def render_css_styles():
     """Render simple and clean CSS styles for the application"""
     st.markdown('''

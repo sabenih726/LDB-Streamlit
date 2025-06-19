@@ -26,164 +26,157 @@ def login_page():
                 login()
 
 def render_css_styles():
-    """Render custom CSS styles for the application"""
+    """Render simple and clean CSS styles for the application"""
     st.markdown('''
     <style>
-    body {
-        background-color: 
-#f8fafc;
-        font-family: 'Segoe UI', sans-serif;
+    /* Hide Streamlit branding and unnecessary elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Clean background */
+    .stApp {
+        background-color: #ffffff;
     }
-
-    .sidebar-header {
-        background: linear-gradient(135deg, 
-#1d4ed8, 
-#2563eb);
-        color: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-        text-align: center;
-        font-weight: 600;
-        font-size: 1.1rem;
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #f8f9fa;
     }
-
-    .menu-item {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem;
-        margin: 0.25rem 0;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background-color: transparent;
-        border: none;
-        width: 100%;
-        text-align: left;
-        color: 
-#374151;
-    }
-
-    .menu-item:hover {
-        background-color: 
-#f3f4f6;
-        color: 
-#1d4ed8;
-    }
-
-    .menu-item.active {
-        background-color: 
-#1d4ed8;
-        color: white;
-    }
-
-    .menu-icon {
-        margin-right: 0.75rem;
-        font-size: 1.1rem;
-    }
-
+    
+    /* Simple header styling */
     .header {
-        background: linear-gradient(135deg, 
-#1d4ed8, 
-#2563eb);
+        background-color: #2c3e50;
         color: white;
-        padding: 2rem;
-        border-radius: 0.75rem;
-        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
         text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
+    
+    /* Clean container */
     .container {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        margin-bottom: 2rem;
+        background-color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 1rem;
     }
-
+    
+    /* Simple upload area */
     .uploadfile {
-        border: 2px dashed 
-#cbd5e1;
-        border-radius: 0.75rem;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
         padding: 2rem;
         text-align: center;
-        background-color: 
-#f8fafc;
-        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+        margin: 1rem 0;
     }
-
+    
     .uploadfile:hover {
-        border-color: 
-#1d4ed8;
-        background-color: 
-#f0f9ff;
+        border-color: #007bff;
+        background-color: #e3f2fd;
     }
-
+    
+    /* Clean cards */
     .card {
-        background-color: 
-#f8fafc;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid 
-#e2e8f0;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        margin: 0.5rem 0;
     }
-
-    .alert-warning {
-        background-color: 
-#fef3c7;
-        border: 1px solid 
-#f59e0b;
-        color: 
-#92400e;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-        text-align: center;
-        font-weight: 600;
-    }
-
+    
+    /* Simple alerts */
     .alert-info {
-        background-color: 
-#dbeafe;
-        border: 1px solid 
-#3b82f6;
-        color: 
-#1e40af;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        margin: 2rem 0;
-    }
-
-    .divider {
-        height: 1px;
-        background-color: 
-#e2e8f0;
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+        padding: 1rem;
+        border-radius: 8px;
         margin: 1rem 0;
     }
-
-    .modern-button {
-        background: linear-gradient(to right, 
-#1d4ed8, 
-#2563eb);
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    /* Clean buttons */
+    .stButton > button {
+        background-color: #007bff;
         color: white;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
         border: none;
-        border-radius: 0.5rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background-color 0.2s;
     }
-
-    .modern-button:hover {
-        background: linear-gradient(to right, 
-#2563eb, 
-#1e40af);
-        transform: translateY(-2px);
+    
+    .stButton > button:hover {
+        background-color: #0056b3;
     }
-
-    @keyframes progress {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
+    
+    /* Clean dataframe styling */
+    .stDataFrame {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+    
+    /* Remove extra padding */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+    
+    /* Clean text inputs */
+    .stTextInput > div > div > input {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 0.5rem;
+    }
+    
+    /* Clean selectbox */
+    .stSelectbox > div > div > div {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+    }
+    
+    /* Simple progress bar */
+    .stProgress > div > div > div {
+        background-color: #007bff;
+    }
+    
+    /* Clean file uploader */
+    .stFileUploader > div {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    /* Remove default margins */
+    .element-container {
+        margin-bottom: 1rem;
+    }
+    
+    /* Clean typography */
+    h1, h2, h3 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    /* Simple divider */
+    hr {
+        border: none;
+        height: 1px;
+        background-color: #dee2e6;
+        margin: 1.5rem 0;
     }
     </style>
     ''', unsafe_allow_html=True)

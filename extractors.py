@@ -84,7 +84,7 @@ def extract_evln(text):
             if len(parts) > 1:
                 pob_text = parts[1].strip()
                 # Hapus "Visa Type" jika ada
-                pob_cleaned = re.sub(r'\s*Visa\s*Type\s*
+                pob_cleaned = re.sub(r'\s*Visa\s*Type\s*.*', '', pob_text)
         
         elif re.search(r"(?i)\bDate of Birth\b|\bTanggal Lahir\b", line):
             match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})", line)

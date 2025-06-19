@@ -103,16 +103,20 @@ def extract_evln(text):
 # ========================= Ekstraksi ITAS =========================
 def extract_itas(text):
     data = {}
-
+    
+    # Extract Name
     name_match = re.search(r"([A-Z\s]+)\nPERMIT NUMBER", text)
     data["Name"] = name_match.group(1).strip() if name_match else None
-
+    
+    # Extract Permit Number
     permit_match = re.search(r"PERMIT NUMBER\s*:\s*([A-Z0-9-]+)", text)
     data["Permit Number"] = permit_match.group(1) if permit_match else None
-
+    
+    # Extract Stay Permit Expiry
     expiry_match = re.search(r"STAY PERMIT EXPIRY\s*:\s*([\d/]+)", text)
     data["Stay Permit Expiry"] = format_date(expiry_match.group(1)) if expiry_match else None
-
+    
+    # Extract Place & Date of Birth
     place_date_birth_match = re.search(r"Place / Date of Birth\s*.*:\s*([A-Za-z\s]+)\s*/\s*([\d-]+)", text)
     if place_date_birth_match:
         place = place_date_birth_match.group(1).strip()
@@ -120,46 +124,78 @@ def extract_itas(text):
         data["Place & Date of Birth"] = f"{place}, {format_date(date)}"
     else:
         data["Place & Date of Birth"] = None
-
+    
+    # Extract Passport Number
     passport_match = re.search(r"Passport Number\s*: ([A-Z0-9]+)", text)
     data["Passport Number"] = passport_match.group(1) if passport_match else None
-
+    
+    # Extract Passport Expiry
     passport_expiry_match = re.search(r"Passport Expiry\s*: ([\d-]+)", text)
     data["Passport Expiry"] = format_date(passport_expiry_match.group(1)) if passport_expiry_match else None
-
+    
+    # Extract Nationality
     nationality_match = re.search(r"Nationality\s*: ([A-Z]+)", text)
     data["Nationality"] = nationality_match.group(1) if nationality_match else None
-
+    
+    # Extract Gender
     gender_match = re.search(r"Gender\s*: ([A-Z]+)", text)
     data["Gender"] = gender_match.group(1) if gender_match else None
-
+    
+    # Extract Address
     address_match = re.search(r"Address\s*:\s*(.+)", text)
     data["Address"] = address_match.group(1).strip() if address_match else None
-
+    
+    # Extract Occupation
     occupation_match = re.search(r"Occupation\s*:\s*(.+)", text)
     data["Occupation"] = occupation_match.group(1).strip() if occupation_match else None
-
+    
+    # Extract Guarantor
     guarantor_match = re.search(r"Guarantor\s*:\s*(.+)", text)
     data["Guarantor"] = guarantor_match.group(1).strip() if guarantor_match else None
-
+    
+    # Extract Date Issue - mencari tanggal di bagian bawah dokumen
+    date_issue_match = re.search(r"([A-Za-z]+),\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text)
+    if date_issue_match:
+        day = date_issue_match.group(2)
+        month = date_issue_match.group(3)
+        year = date_issue_match.group(4)
+        # Convert month name to number
+        month_dict = {
+            'January': '01', 'February': '02', 'March': '03', 'April': '04',
+            'May': '05', 'June': '06', 'July': '07', 'August': '08',
+            'September': '09', 'October': '10', 'November': '11', 'December': '12'
+        }
+        month_num = month_dict.get(month, month)
+        date_str = f"{day.zfill(2)}/{month_num}/{year}"
+        data["Date Issue"] = format_date(date_str)
+    else:
+        # Fallback: cari pattern tanggal lain di dokumen
+        fallback_date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", text)
+        if fallback_date_match:
+            data["Date Issue"] = format_date(fallback_date_match.group(0))
+        else:
+            data["Date Issue"] = None
+    
     data["Jenis Dokumen"] = "ITAS"
-
     return data
 
 # ========================= Ekstraksi ITK =========================
 def extract_itk(text):
-    # Struktur sama dengan ITAS, bisa direuse tapi saya buatkan terpisah untuk fleksibilitas
     data = {}
-
+    
+    # Extract Name
     name_match = re.search(r"([A-Z\s]+)\nPERMIT NUMBER", text)
     data["Name"] = name_match.group(1).strip() if name_match else None
-
+    
+    # Extract Permit Number
     permit_match = re.search(r"PERMIT NUMBER\s*:\s*([A-Z0-9-]+)", text)
     data["Permit Number"] = permit_match.group(1) if permit_match else None
-
+    
+    # Extract Stay Permit Expiry
     expiry_match = re.search(r"STAY PERMIT EXPIRY\s*:\s*([\d/]+)", text)
     data["Stay Permit Expiry"] = format_date(expiry_match.group(1)) if expiry_match else None
-
+    
+    # Extract Place & Date of Birth
     place_date_birth_match = re.search(r"Place / Date of Birth\s*.*:\s*([A-Za-z\s]+)\s*/\s*([\d-]+)", text)
     if place_date_birth_match:
         place = place_date_birth_match.group(1).strip()
@@ -167,30 +203,59 @@ def extract_itk(text):
         data["Place & Date of Birth"] = f"{place}, {format_date(date)}"
     else:
         data["Place & Date of Birth"] = None
-
+    
+    # Extract Passport Number
     passport_match = re.search(r"Passport Number\s*: ([A-Z0-9]+)", text)
     data["Passport Number"] = passport_match.group(1) if passport_match else None
-
+    
+    # Extract Passport Expiry
     passport_expiry_match = re.search(r"Passport Expiry\s*: ([\d-]+)", text)
     data["Passport Expiry"] = format_date(passport_expiry_match.group(1)) if passport_expiry_match else None
-
+    
+    # Extract Nationality
     nationality_match = re.search(r"Nationality\s*: ([A-Z]+)", text)
     data["Nationality"] = nationality_match.group(1) if nationality_match else None
-
+    
+    # Extract Gender
     gender_match = re.search(r"Gender\s*: ([A-Z]+)", text)
     data["Gender"] = gender_match.group(1) if gender_match else None
-
+    
+    # Extract Address
     address_match = re.search(r"Address\s*:\s*(.+)", text)
     data["Address"] = address_match.group(1).strip() if address_match else None
-
+    
+    # Extract Occupation
     occupation_match = re.search(r"Occupation\s*:\s*(.+)", text)
     data["Occupation"] = occupation_match.group(1).strip() if occupation_match else None
-
+    
+    # Extract Guarantor
     guarantor_match = re.search(r"Guarantor\s*:\s*(.+)", text)
     data["Guarantor"] = guarantor_match.group(1).strip() if guarantor_match else None
-
+    
+    # Extract Date Issue - mencari tanggal di bagian bawah dokumen
+    date_issue_match = re.search(r"([A-Za-z]+),\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text)
+    if date_issue_match:
+        day = date_issue_match.group(2)
+        month = date_issue_match.group(3)
+        year = date_issue_match.group(4)
+        # Convert month name to number
+        month_dict = {
+            'January': '01', 'February': '02', 'March': '03', 'April': '04',
+            'May': '05', 'June': '06', 'July': '07', 'August': '08',
+            'September': '09', 'October': '10', 'November': '11', 'December': '12'
+        }
+        month_num = month_dict.get(month, month)
+        date_str = f"{day.zfill(2)}/{month_num}/{year}"
+        data["Date Issue"] = format_date(date_str)
+    else:
+        # Fallback: cari pattern tanggal lain di dokumen
+        fallback_date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", text)
+        if fallback_date_match:
+            data["Date Issue"] = format_date(fallback_date_match.group(0))
+        else:
+            data["Date Issue"] = None
+    
     data["Jenis Dokumen"] = "ITK"
-
     return data
 
 # ========================= Ekstraksi Notifikasi =========================

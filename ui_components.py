@@ -10,40 +10,68 @@ def render_dark_login_css():
     """Render dark mode CSS for login page"""
     st.markdown('''
     <style>
-    /* Hide Streamlit branding */
+    /* Hide Streamlit branding and containers */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     header {visibility: hidden;}
     
+    /* AGGRESSIVE: Hide all default Streamlit containers */
+    .stApp > div:first-child {
+        display: none !important;
+    }
+    
     /* Dark background */
     .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
         color: #f8fafc;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    /* Remove default padding and margins */
+    /* Remove ALL default containers and their borders */
     .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 3rem !important;
-        margin-top: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: none !important;
+        max-width: 100% !important;
     }
     
-    /* Remove any default borders/margins from Streamlit containers */
-    .main .block-container {
-        padding-top: 1rem !important;
-        margin-top: 0 !important;
-    }
-    
-    /* Ensure no border on main content */
     .main {
         padding: 0 !important;
         margin: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+    
+    .main .block-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background: none !important;
     }
     
     /* Remove default element spacing */
     .element-container {
         margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+    
+    /* Override any container that might have borders */
+    div[data-testid="stVerticalBlock"] {
+        border: none !important;
+        background: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    div[data-testid="column"] {
+        border: none !important;
+        background: none !important;
         padding: 0 !important;
     }
     
@@ -197,23 +225,53 @@ def login_page():
     # Apply dark mode CSS
     render_dark_login_css()
     
-    # Remove default spacing at the top
-    st.markdown('<div style="margin-top: -1rem;"></div>', unsafe_allow_html=True)
+    # Create a custom container to replace default Streamlit layout
+    st.markdown('''
+    <div style="
+        width: 100vw; 
+        height: 100vh; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    ">
+        <div class="login-card" style="
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            width: 400px;
+            max-width: 90vw;
+        ">
+            <div class="login-header" style="text-align: center; margin-bottom: 2rem;">
+                <h1 style="
+                    color: #f8fafc; 
+                    font-size: 1.8rem; 
+                    font-weight: 700; 
+                    margin: 0 0 0.5rem 0; 
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                ">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
+                <p style="
+                    color: #94a3b8; 
+                    font-size: 1rem; 
+                    margin: 0;
+                ">Sistem Ekstraksi Dokumen Imigrasi</p>
+            </div>
+        </div>
+    </div>
+    ''', unsafe_allow_html=True)
     
+    # Hide the content above and use Streamlit form below the overlay
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Login card wrapper
-        st.markdown('<div class="login-card">', unsafe_allow_html=True)
-        
-        # Header with dark mode styling
-        st.markdown('''
-        <div class="login-header">
-            <h1 style="text-align:center; margin:0; padding:0; border:none;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
-            <p style="text-align:center; margin:0 0 1.5rem 0; padding:0; border:none;">Sistem Ekstraksi Dokumen Imigrasi</p>
-        </div>
-        ''', unsafe_allow_html=True)
-        
-        st.markdown("<hr>", unsafe_allow_html=True)
+        # Make the form invisible but functional
+        st.markdown('<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -30%); z-index: 1000; width: 300px;">', unsafe_allow_html=True)
         
         # Login form
         with st.form("login_form"):
@@ -230,9 +288,7 @@ def login_page():
                 from auth import login
                 login()
         
-        # Close card wrapper
         st.markdown('</div>', unsafe_allow_html=True)
-
 def render_css_styles():
     """Render simple and clean CSS styles for the application"""
     st.markdown('''

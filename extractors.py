@@ -269,16 +269,19 @@ def extract_notifikasi(text):
         "Nomor Paspor": "",
         "Jabatan": "",
         "Lokasi Kerja": "",
-        "Berlaku": ""
+        "Berlaku": "",
+        "Date Issue": ""
     }
-
+    
     def find(pattern):
         match = re.search(pattern, text, re.IGNORECASE)
         return match.group(1).strip() if match else ""
-
+    
+    # Extract Nomor Keputusan
     nomor_keputusan_match = re.search(r"NOMOR\s+([A-Z0-9./-]+)", text, re.IGNORECASE)
     data["Nomor Keputusan"] = nomor_keputusan_match.group(1).strip() if nomor_keputusan_match else ""
-
+    
+    # Extract basic information
     data["Nama TKA"] = find(r"Nama TKA\s*:\s*(.*)")
     data["Tempat/Tanggal Lahir"] = find(r"Tempat/Tanggal Lahir\s*:\s*(.*)")
     data["Kewarganegaraan"] = find(r"Kewarganegaraan\s*:\s*(.*)")
@@ -286,7 +289,8 @@ def extract_notifikasi(text):
     data["Nomor Paspor"] = find(r"Nomor Paspor\s*:\s*(.*)")
     data["Jabatan"] = find(r"Jabatan\s*:\s*(.*)")
     data["Lokasi Kerja"] = find(r"Lokasi Kerja\s*:\s*(.*)")
-
+    
+    # Extract validity period
     valid_match = re.search(
         r"Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*(?:s\.?d\.?|sampai dengan)?\s*(\d{2}[-/]\d{2}[-/]\d{4})",
         text, re.IGNORECASE)
@@ -294,12 +298,38 @@ def extract_notifikasi(text):
         valid_match = re.search(
             r"Tanggal Berlaku\s*:?\s*(\d{2}[-/]\d{2}[-/]\d{4})\s*s\.?d\.?\s*(\d{2}[-/]\d{2}[-/]\d{4})",
             text, re.IGNORECASE)
-
     if valid_match:
         start_date = format_date(valid_match.group(1))
         end_date = format_date(valid_match.group(2))
         data["Berlaku"] = f"{start_date} - {end_date}"
-
+    
+    # Extract Date Issue (tanggal ditetapkan)
+    # Pattern untuk "Pada tanggal : DD Month YYYY" atau "Pada tanggal : DD-MM-YYYY"
+    date_issue_match = re.search(
+        r"Pada tanggal\s*:\s*(\d{1,2})\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{4})",
+        text, re.IGNORECASE)
+    
+    if date_issue_match:
+        day = date_issue_match.group(1).zfill(2)
+        month_name = date_issue_match.group(2)
+        year = date_issue_match.group(3)
+        
+        # Convert month name to number
+        month_map = {
+            'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
+            'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
+            'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
+        }
+        month = month_map.get(month_name.lower(), '01')
+        data["Date Issue"] = f"{day}/{month}/{year}"
+    else:
+        # Alternative pattern for numeric date format
+        date_issue_match = re.search(
+            r"Pada tanggal\s*:\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4})",
+            text, re.IGNORECASE)
+        if date_issue_match:
+            data["Date Issue"] = format_date(date_issue_match.group(1))
+    
     return data
 
 # ========================= Ekstraksi DKPTKA (IMPROVED) =========================

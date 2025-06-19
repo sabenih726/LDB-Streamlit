@@ -6,24 +6,180 @@ from pathlib import Path
 from auth import logout
 from helpers import get_greeting
 
+def render_dark_login_css():
+    """Render dark mode CSS for login page"""
+    st.markdown('''
+    <style>
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Dark background */
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f8fafc;
+    }
+    
+    /* Remove default padding */
+    .block-container {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+    
+    /* Login card container */
+    .login-card {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(71, 85, 105, 0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        margin: 2rem 0;
+    }
+    
+    /* Header styling */
+    .login-header h1 {
+        color: #f8fafc !important;
+        font-size: 1.8rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.5rem !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .login-header p {
+        color: #94a3b8 !important;
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Divider styling */
+    hr {
+        border: none !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, #475569, transparent) !important;
+        margin: 1.5rem 0 2rem 0 !important;
+    }
+    
+    /* Input field styling */
+    .stTextInput > div > div > input {
+        background-color: rgba(51, 65, 85, 0.6) !important;
+        border: 1px solid rgba(71, 85, 105, 0.4) !important;
+        border-radius: 8px !important;
+        color: #f8fafc !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        background-color: rgba(51, 65, 85, 0.8) !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder {
+        color: #94a3b8 !important;
+    }
+    
+    /* Label styling */
+    .stTextInput > label {
+        color: #e2e8f0 !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        margin-top: 1rem !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2) !important;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0px) !important;
+    }
+    
+    /* Form styling */
+    .stForm {
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    /* Error message styling */
+    .stAlert[data-baseweb="notification"] {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        color: #fca5a5 !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Success message styling */
+    .stSuccess {
+        background-color: rgba(34, 197, 94, 0.15) !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        color: #86efac !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Remove margins */
+    .element-container {
+        margin-bottom: 1rem !important;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+
 def login_page():
+    # Apply dark mode CSS
+    render_dark_login_css()
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<h1 style="text-align:center;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>', unsafe_allow_html=True)
-        st.markdown('<p style="text-align:center;">Sistem Ekstraksi Dokumen Imigrasi</p>', unsafe_allow_html=True)
+        # Login card wrapper
+        st.markdown('<div class="login-card">', unsafe_allow_html=True)
+        
+        # Header with dark mode styling
+        st.markdown('''
+        <div class="login-header">
+            <h1 style="text-align:center;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
+            <p style="text-align:center;">Sistem Ekstraksi Dokumen Imigrasi</p>
+        </div>
+        ''', unsafe_allow_html=True)
+        
         st.markdown("<hr>", unsafe_allow_html=True)
-
+        
+        # Login form
         with st.form("login_form"):
-            st.text_input("Username", key="username")
-            st.text_input("Password", type="password", key="password")
-
-            if st.session_state.login_attempt > 0:
-                st.error(f"Username atau password salah! (Percobaan ke-{st.session_state.login_attempt})")
-
-            submit = st.form_submit_button("Login")
+            st.text_input("Username", key="username", placeholder="Masukkan username Anda")
+            st.text_input("Password", type="password", key="password", placeholder="Masukkan password Anda")
+            
+            # Show error message if login failed
+            if st.session_state.get('login_attempt', 0) > 0:
+                st.error(f"❌ Username atau password salah! (Percobaan ke-{st.session_state.login_attempt})")
+            
+            submit = st.form_submit_button("🔐 Login")
+            
             if submit:
                 from auth import login
                 login()
+        
+        # Close card wrapper
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def render_css_styles():
     """Render simple and clean CSS styles for the application"""

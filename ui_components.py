@@ -16,9 +16,40 @@ def render_dark_login_css():
     .stDeployButton {display: none;}
     header {visibility: hidden;}
     
-    /* Hide the problematic container */
+    /* Hide the problematic containers */
     .stApp > div:first-child {
         display: none !important;
+    }
+    
+    /* Hide notification/status containers */
+    div[data-testid="stNotificationContentError"],
+    div[data-testid="stNotificationContentInfo"],
+    div[data-testid="stNotificationContentSuccess"],
+    div[data-testid="stStatusWidget"],
+    .stAlert-container,
+    .stToast,
+    .element-container:empty {
+        display: none !important;
+    }
+    
+    /* Hide any empty containers with borders */
+    div:empty,
+    .stApp > div:empty,
+    .main > div:empty {
+        display: none !important;
+    }
+    
+    /* Force remove borders from all potential containers */
+    .stApp > div,
+    .stApp > div > div,
+    .main > div,
+    .block-container > div,
+    section[data-testid="stSidebar"] + div,
+    div[data-testid="stVerticalBlock"]:first-child {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
     
     /* Override ALL Streamlit containers */

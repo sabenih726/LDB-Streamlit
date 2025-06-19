@@ -14,6 +14,7 @@ def render_dark_login_css():
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
+    header {visibility: hidden;}
     
     /* Dark background */
     .stApp {
@@ -21,10 +22,29 @@ def render_dark_login_css():
         color: #f8fafc;
     }
     
-    /* Remove default padding */
+    /* Remove default padding and margins */
     .block-container {
-        padding-top: 3rem;
-        padding-bottom: 3rem;
+        padding-top: 1rem !important;
+        padding-bottom: 3rem !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Remove any default borders/margins from Streamlit containers */
+    .main .block-container {
+        padding-top: 1rem !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Ensure no border on main content */
+    .main {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Remove default element spacing */
+    .element-container {
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
     /* Login card container */
@@ -35,22 +55,37 @@ def render_dark_login_css():
         border-radius: 16px;
         padding: 2.5rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-        margin: 2rem 0;
+        margin: 2rem auto !important;
+        max-width: 100%;
+        position: relative;
+        top: 0;
     }
     
-    /* Header styling */
+    /* Header styling - Remove any inherited borders */
+    .login-header {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+    
     .login-header h1 {
         color: #f8fafc !important;
         font-size: 1.8rem !important;
         font-weight: 700 !important;
-        margin-bottom: 0.5rem !important;
+        margin: 0 0 0.5rem 0 !important;
+        padding: 0 !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        border: none !important;
+        background: none !important;
     }
     
     .login-header p {
         color: #94a3b8 !important;
         font-size: 1rem !important;
-        margin-bottom: 1.5rem !important;
+        margin: 0 0 1.5rem 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
     }
     
     /* Divider styling */
@@ -119,6 +154,8 @@ def render_dark_login_css():
     .stForm {
         background: transparent !important;
         border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
     /* Error message styling */
@@ -137,9 +174,21 @@ def render_dark_login_css():
         border-radius: 8px !important;
     }
     
-    /* Remove margins */
-    .element-container {
-        margin-bottom: 1rem !important;
+    /* Override any default Streamlit container styling */
+    .stApp > div {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Ensure columns don't have unwanted spacing */
+    .stColumn {
+        padding: 0 !important;
+    }
+    
+    /* Remove any default markdown styling that might add borders */
+    .stMarkdown {
+        margin: 0 !important;
+        padding: 0 !important;
     }
     </style>
     ''', unsafe_allow_html=True)
@@ -147,6 +196,9 @@ def render_dark_login_css():
 def login_page():
     # Apply dark mode CSS
     render_dark_login_css()
+    
+    # Remove default spacing at the top
+    st.markdown('<div style="margin-top: -1rem;"></div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -156,8 +208,8 @@ def login_page():
         # Header with dark mode styling
         st.markdown('''
         <div class="login-header">
-            <h1 style="text-align:center;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
-            <p style="text-align:center;">Sistem Ekstraksi Dokumen Imigrasi</p>
+            <h1 style="text-align:center; margin:0; padding:0; border:none;">🖥️ PT LAMAN DAVINDO BAHMAN</h1>
+            <p style="text-align:center; margin:0 0 1.5rem 0; padding:0; border:none;">Sistem Ekstraksi Dokumen Imigrasi</p>
         </div>
         ''', unsafe_allow_html=True)
         

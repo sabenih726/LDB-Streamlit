@@ -73,7 +73,7 @@ def render_enhanced_login_css():
     /* Login card with glassmorphism */
     .login-card {
         position: relative;
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(20px);
         color: #1e293b;
         border: 1px solid rgba(200, 200, 200, 0.3);
@@ -121,13 +121,13 @@ def render_enhanced_login_css():
     }
     
     .login-header h1 {
-        color: #ffffff !important;
+        color: #0f172a !important;
         font-size: 1.75rem !important;
         font-weight: 700 !important;
         margin: 0 0 0.75rem 0 !important;
-        background: linear-gradient(135deg, #ffffff, #e2e8f0);
+        background: none !important;
         -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        -webkit-text-fill-color: unset !important;
         background-clip: text;
         text-shadow: none;
         letter-spacing: -0.025em;
@@ -170,12 +170,12 @@ def render_enhanced_login_css():
     
     /* Enhanced input fields */
     .stTextInput > div > div > input {
-        background: rgba(51, 65, 85, 0.5) !important;
-        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
         border-radius: 12px !important;
-        color: #f8fafc !important;
+        color: #1e293b !important;
         padding: 1rem 1.25rem !important;
-        font-size: 0.95rem !important;
+        font-size: 1rem !important;
         font-family: 'Inter', sans-serif !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(10px);
@@ -192,13 +192,13 @@ def render_enhanced_login_css():
     
     .stTextInput > div > div > input::placeholder {
         color: #94a3b8 !important;
-        opacity: 0.7;
+        opacity: 0.8;
     }
     
     /* Enhanced labels */
     .stTextInput > label {
-        color: #e2e8f0 !important;
-        font-weight: 500 !important;
+        color: #1e293b !important; /* dark text */
+        font-weight: 600 !important;
         font-size: 0.875rem !important;
         margin-bottom: 0.5rem !important;
         text-transform: uppercase;
@@ -208,8 +208,8 @@ def render_enhanced_login_css():
     
     /* Enhanced button with multiple states */
     .stButton > button {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 12px !important;
         padding: 1rem 2rem !important;

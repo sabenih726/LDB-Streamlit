@@ -33,11 +33,11 @@ def render_enhanced_login_css():
     /* Animated background */
     .stApp {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
+        background: linear-gradient(-45deg, #e0f7fa, #ffffff, #e3f2fd, #f0f8ff);
         background-size: 400% 400%;
         animation: gradientShift 15s ease infinite;
         min-height: 100vh;
-        color: #f8fafc;
+        color: #1e293b;
         position: relative;
         overflow: hidden;
     }
@@ -73,16 +73,14 @@ def render_enhanced_login_css():
     /* Login card with glassmorphism */
     .login-card {
         position: relative;
-        background: rgba(30, 41, 59, 0.7);
+        background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: #1e293b;
+        border: 1px solid rgba(200, 200, 200, 0.3);
         border-radius: 24px;
         padding: 3rem 2.5rem;
-        box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.5),
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
         margin: 2rem auto;
         max-width: 420px;
         transform: translateY(20px);
